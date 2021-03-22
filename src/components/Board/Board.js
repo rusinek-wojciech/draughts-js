@@ -6,9 +6,7 @@ class Board extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-
-        };
+        this.state = {};
     }
 
     renderFigure(item) {
@@ -17,20 +15,29 @@ class Board extends React.Component {
         }
     }
 
+    renderItem(item, i, j) {
+        const classes = 'board-item' + (((j + i) % 2 === 0) ? ' board-item-white' : ' board-item-black');
+        return (
+            <div className={classes} key={j} onClick={() => this.props.onClick(i, j)}>
+                {this.renderFigure(item)}
+            </div>
+        );
+    }
+
     renderRow(row, i) {
-        const result = row.map((item, j) => {
-            const classes = 'board-item' + (((j + i) % 2 === 0) ? ' board-item-white' : ' board-item-black');
-            return (
-                <div className={classes} key={j} onClick={() => this.props.onClick(i, j)}>
-                    { this.renderFigure(item) }
-                </div>
-            );
-        });
-        return <div className="board-row" key={i}>{result}</div>;
+        return (
+            <div className="board-row" key={i}>
+                {row.map((item, j) => this.renderItem(item, i, j))}
+            </div>
+        );
     }
 
     render() {
-        return <div className="board">{ this.props.data.map((row, i) => this.renderRow(row, i)) }</div>;
+        return (
+            <div className="board">
+                {this.props.data.map((row, i) => this.renderRow(row, i))}
+            </div>
+        );
     }
 }
 

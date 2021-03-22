@@ -1,8 +1,12 @@
-import logo from '../../images/logo.svg';
 import './App.css';
 import Board from '../Board/Board';
 import React from 'react';
 
+/*
+white player - 2
+black player - 1
+empty - 0
+ */
 class App extends React.Component {
 
     constructor(props) {
@@ -25,9 +29,21 @@ class App extends React.Component {
         };
     }
 
+    isPlayerLegal() {
+        const white = this.state.data[this.state.di][this.state.dj] === 2 && this.state.whiteNext;
+        const black = this.state.data[this.state.di][this.state.dj] === 1 && !this.state.whiteNext;
+        return white || black;
+    }
+
+    isMoveLegal(i, j) {
+        return (j + i) % 2 === 1;
+    }
+
     handleClick(i, j) {
         if (this.state.data[i][j] === 0) {
-            this.move(i, j, this.state.di, this.state.dj);
+            if (this.isPlayerLegal() && this.isMoveLegal(i, j)) {
+                this.move(i, j, this.state.di, this.state.dj);
+            }
         } else {
             this.setState({
                 di: i,
@@ -47,18 +63,23 @@ class App extends React.Component {
     }
 
     render() {
-
         return (
             <div className="app">
                 <header className="app-header">
-                    <img src={logo} className="app-logo" alt="logo" />
+                    <h1>Draughts game!</h1>
                 </header>
                 <main>
-                    <Board className="board" data={this.state.data} onClick={(i, j) => this.handleClick(i, j)}/>
+                    <Board
+                        className="board"
+                        onClick={(i, j) => this.handleClick(i, j)}
+                        data={this.state.data}
+                    />
+                    <p>{this.state.whiteNext ? 'White round' : 'Black round'}</p>
                 </main>
             </div>
         );
     }
+
 }
 
 export default App;
