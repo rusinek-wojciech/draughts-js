@@ -1,26 +1,30 @@
 import React from 'react';
 import './Board.css';
+import Piece from '../Piece/Piece';
 
 class Board extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.state = {
+
+        };
+    }
+
     renderFigure(item) {
-        if (item === 2) {
-            return (
-                <span className="figure figure-white"/>
-            );
-        } else if (item === 1) {
-            return (
-                <span className="figure figure-black"/>
-            );
-        } else {
-            return null;
+        if (item !== 0) {
+            return <Piece player={item} />
         }
     }
 
     renderRow(row, i) {
         const result = row.map((item, j) => {
             const classes = 'board-item' + (((j + i) % 2 === 0) ? ' board-item-white' : ' board-item-black');
-            return <div className={classes} key={j}>{ this.renderFigure(item) }</div>;
+            return (
+                <div className={classes} key={j} onClick={() => this.props.onClick(i, j)}>
+                    { this.renderFigure(item) }
+                </div>
+            );
         });
         return <div className="board-row" key={i}>{result}</div>;
     }
