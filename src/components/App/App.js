@@ -36,7 +36,9 @@ class App extends React.Component {
     }
 
     isMoveLegal(i, j) {
-        return (j + i) % 2 === 1;
+        const di = this.state.di;
+        const dj = this.state.dj;
+        return (j + di === dj + i) || (j + i === dj + di);
     }
 
     handleClick(i, j) {
