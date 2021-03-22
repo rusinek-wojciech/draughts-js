@@ -24,6 +24,7 @@ class App extends React.Component {
         this.state = {
             data: initData,
             whiteNext: true,
+            rotated: false,
             di: 0,
             dj: 0,
         };
@@ -64,6 +65,10 @@ class App extends React.Component {
         });
     }
 
+    rotate() {
+        this.setState({rotated: !this.state.rotated});
+    }
+
     render() {
         return (
             <div className="app">
@@ -72,11 +77,14 @@ class App extends React.Component {
                 </header>
                 <main>
                     <Board
-                        className="board"
                         onClick={(i, j) => this.handleClick(i, j)}
                         data={this.state.data}
+                        classes={this.state.rotated ? 'board rotated' : 'board'}
                     />
                     <p>{this.state.whiteNext ? 'White round' : 'Black round'}</p>
+                    <button onClick={() => this.rotate()} >
+                        Rotate board
+                    </button>
                 </main>
             </div>
         );

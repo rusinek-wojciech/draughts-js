@@ -34,7 +34,7 @@ class Board extends React.Component {
 
     render() {
         return (
-            <div className="board">
+            <div className={'board ' + this.props.classes}>
                 {this.props.data.map((row, i) => this.renderRow(row, i))}
             </div>
         );

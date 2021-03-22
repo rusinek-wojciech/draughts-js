@@ -24,4 +24,9 @@ main {
 
 .board {
   margin: 50px auto;
+  transition: transform 1s;
+}
+
+.rotated {
+  transform: rotate(180deg);
 }
