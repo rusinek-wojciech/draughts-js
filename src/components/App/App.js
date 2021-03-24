@@ -19,13 +19,11 @@ class App extends React.Component {
     }
 
     isBlackPlayer(elem) {
-        return (elem === DATA.BLACK || elem === DATA.BLACK_KING)
-            && !this.state.whiteNext;
+        return (elem === DATA.BLACK || elem === DATA.BLACK_KING) && !this.state.whiteNext;
     }
 
     isWhitePlayer(elem) {
-        return (elem === DATA.WHITE || elem === DATA.WHITE_KING)
-            && this.state.whiteNext;
+        return (elem === DATA.WHITE || elem === DATA.WHITE_KING) && this.state.whiteNext;
     }
 
     isMoveDiagonal(i, j, di, dj) {
@@ -57,12 +55,14 @@ class App extends React.Component {
                             if ((elem === DATA.WHITE && k < i) || elem === DATA.WHITE_KING) {
                                 view[k][l] = VIEW.AVAILABLE;
                             }
+
                         } else {
 
                             // is move forward for black or is king
                             if ((elem === DATA.BLACK && k > i) || elem === DATA.BLACK_KING) {
                                 view[k][l] = VIEW.AVAILABLE;
                             }
+
                         }
                     }
                 }
@@ -89,14 +89,20 @@ class App extends React.Component {
 
     move(i, j, di, dj) {
 
+        // copy
         const data = this.state.data.slice();
-        data[i][j] = data[di][dj];
-        data[di][dj] = DATA.EMPTY;
 
         // check if piece becomes king
-        if ((this.state.whiteNext && i === 0) || (!this.state.whiteNext && i === (BOARD_SIZE - 1))) {
-            data[i][j] += 2;
+        if (this.state.whiteNext && i === 0) {
+            data[i][j] = DATA.WHITE_KING;
+        } else if (!this.state.whiteNext && i === (BOARD_SIZE - 1)) {
+            data[i][j] = DATA.BLACK_KING;
+        } else {
+            data[i][j] = data[di][dj];
         }
+
+        // clear old field after
+        data[di][dj] = DATA.EMPTY;
 
         this.setState({
             data: data,
