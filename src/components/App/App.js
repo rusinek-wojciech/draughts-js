@@ -21,44 +21,78 @@ class App extends React.Component {
             [0, 2, 0, 2, 0, 2, 0, 2],
             [2, 0, 2, 0, 2, 0, 2, 0],
         ];
+        const initView = [
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ];
         this.state = {
             data: initData,
+            view: initView,
             whiteNext: true,
             rotated: false,
-            di: 0,
-            dj: 0,
         };
     }
 
-    isPlayerLegal() {
-        const white = this.state.data[this.state.di][this.state.dj] === 2 && this.state.whiteNext;
-        const black = this.state.data[this.state.di][this.state.dj] === 1 && !this.state.whiteNext;
-        return white || black;
+
+    isBlackPlayer(i, j) {
+        return this.state.data[i][j] === 1 && !this.state.whiteNext;
     }
 
-    isMoveLegal(i, j) {
-        const di = this.state.di;
-        const dj = this.state.dj;
+    isWhitePlayer(i, j) {
+        return this.state.data[i][j] === 2 && this.state.whiteNext;
+    }
+
+    isMoveDiagonal(i, j, di, dj) {
         return (j + di === dj + i) || (j + i === dj + di);
     }
 
+    resetView() {
+        return Array(8).fill(null).map(() => Array(8).fill(0));
+    }
+
     handleClick(i, j) {
-        if (this.state.data[i][j] === 0) {
-            if (this.isPlayerLegal() && this.isMoveLegal(i, j)) {
-                this.move(i, j, this.state.di, this.state.dj);
+        if (this.isWhitePlayer(i, j) || this.isBlackPlayer(i, j)) {
+
+            // calculate view
+            const view = this.resetView();
+            view[i][j] = 1;
+            for (let k = 0; k < 8; k++) {
+                for (let l = 0; l < 8; l++) {
+                    if (this.isMoveDiagonal(i, j, k, l) && this.state.data[k][l] === 0) {
+                        view[k][l] = 2;
+                    }
+                }
             }
-        } else {
+
+            // update view
             this.setState({
-                di: i,
-                dj: j,
+               view: view,
+            });
+
+            // saving as previous
+            this.prevI= i;
+            this.prevJ = j;
+
+        } else if (this.state.view[i][j] === 2) {
+
+            // is move legal -> move
+            this.move(i, j, this.prevI, this.prevJ);
+            this.setState({
+               view: this.resetView(),
             });
         }
     }
 
-    move(x, y, dx, dy) {
+    move(i, j, di, dj) {
         const data = this.state.data.slice();
-        data[x][y] = data[dx][dy];
-        data[dx][dy] = 0;
+        data[i][j] = data[di][dj];
+        data[di][dj] = 0;
         this.setState({
             data: data,
             whiteNext: !this.state.whiteNext,
@@ -79,7 +113,8 @@ class App extends React.Component {
                     <Board
                         onClick={(i, j) => this.handleClick(i, j)}
                         data={this.state.data}
-                        classes={this.state.rotated ? 'board rotated' : 'board'}
+                        view={this.state.view}
+                        classes={this.state.rotated ? 'board rotated' : ''}
                     />
                     <p>{this.state.whiteNext ? 'White round' : 'Black round'}</p>
                     <button onClick={() => this.rotate()} >

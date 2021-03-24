@@ -4,11 +4,6 @@ import Piece from '../Piece/Piece';
 
 class Board extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {};
-    }
-
     renderFigure(item) {
         if (item !== 0) {
             return <Piece player={item} />
@@ -16,9 +11,18 @@ class Board extends React.Component {
     }
 
     renderItem(item, i, j) {
-        const classes = 'board-item' + (((j + i) % 2 === 0) ? ' board-item-white' : ' board-item-black');
+        let classes = 'board-item' + ((j + i) % 2 === 0 ? ' board-item-white' : ' board-item-black');
+        if (this.props.view[i][j] === 1) {
+            classes += ' board-focused';
+        } else if (this.props.view[i][j] === 2) {
+            classes += ' board-blocked';
+        }
         return (
-            <div className={classes} key={j} onClick={() => this.props.onClick(i, j)}>
+            <div
+                className={classes}
+                key={j}
+                onClick={() => this.props.onClick(i, j)}
+            >
                 {this.renderFigure(item)}
             </div>
         );

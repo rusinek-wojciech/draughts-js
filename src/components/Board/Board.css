@@ -22,3 +22,11 @@
 .board-item-white {
     background-color: antiquewhite;
 }
+
+.board-focused {
+    background-color: red;
+}
+
+.board-blocked {
+    background-color: green;
+}
