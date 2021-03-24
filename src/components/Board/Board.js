@@ -3,11 +3,14 @@ import './Board.css';
 import Piece from '../Piece/Piece';
 import {DATA, VIEW} from "../../config/enum";
 
+/**
+ * Defines Board rendering
+ */
 class Board extends React.Component {
 
     renderFigure(item) {
         if (item !== DATA.EMPTY) {
-            return <Piece player={item} />
+            return <Piece figure={item} />
         }
     }
 

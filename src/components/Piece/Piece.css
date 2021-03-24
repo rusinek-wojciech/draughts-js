@@ -22,3 +22,12 @@
 .figure-black {
     background-color: #373434;
 }
+
+.figure-black_king {
+    background-color: darkblue;
+}
+
+.figure-white_king {
+    background-color: yellow;
+}
+

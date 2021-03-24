@@ -3,6 +3,9 @@ import Board from '../Board/Board';
 import React from 'react';
 import {DATA, VIEW, INIT_DATA, BOARD_SIZE} from '../../config/enum';
 
+/**
+ * Main component with game logic
+ */
 class App extends React.Component {
 
     constructor(props) {
@@ -15,12 +18,14 @@ class App extends React.Component {
         };
     }
 
-    isBlackPlayer(i, j) {
-        return this.state.data[i][j] === DATA.BLACK && !this.state.whiteNext;
+    isBlackPlayer(elem) {
+        return (elem === DATA.BLACK || elem === DATA.BLACK_KING)
+            && !this.state.whiteNext;
     }
 
-    isWhitePlayer(i, j) {
-        return this.state.data[i][j] === DATA.WHITE && this.state.whiteNext;
+    isWhitePlayer(elem) {
+        return (elem === DATA.WHITE || elem === DATA.WHITE_KING)
+            && this.state.whiteNext;
     }
 
     isMoveDiagonal(i, j, di, dj) {
@@ -34,15 +39,31 @@ class App extends React.Component {
     }
 
     handleClick(i, j) {
-        if (this.isWhitePlayer(i, j) || this.isBlackPlayer(i, j)) {
+        const elem = this.state.data[i][j];
+        if (this.isWhitePlayer(elem) || this.isBlackPlayer(elem)) {
 
             // calculate view
             const view = this.resetView();
             view[i][j] = VIEW.ACTUAL;
             for (let k = 0; k < BOARD_SIZE; k++) {
                 for (let l = 0; l < BOARD_SIZE; l++) {
-                    if (this.isMoveDiagonal(i, j, k, l) && this.state.data[k][l] === DATA.EMPTY) {
-                        view[k][l] = VIEW.AVAILABLE;
+
+                    // is move diagonal and field is empty
+                    if (((j + k === l + i) || (j + i === l + k)) && this.state.data[k][l] === DATA.EMPTY) {
+
+                        if (this.state.whiteNext) {
+
+                            // is move forward for white or is king
+                            if ((elem === DATA.WHITE && k < i) || elem === DATA.WHITE_KING) {
+                                view[k][l] = VIEW.AVAILABLE;
+                            }
+                        } else {
+
+                            // is move forward for black or is king
+                            if ((elem === DATA.BLACK && k > i) || elem === DATA.BLACK_KING) {
+                                view[k][l] = VIEW.AVAILABLE;
+                            }
+                        }
                     }
                 }
             }
@@ -67,9 +88,16 @@ class App extends React.Component {
     }
 
     move(i, j, di, dj) {
+
         const data = this.state.data.slice();
         data[i][j] = data[di][dj];
         data[di][dj] = DATA.EMPTY;
+
+        // check if piece becomes king
+        if ((this.state.whiteNext && i === 0) || (!this.state.whiteNext && i === (BOARD_SIZE - 1))) {
+            data[i][j] += 2;
+        }
+
         this.setState({
             data: data,
             whiteNext: !this.state.whiteNext,

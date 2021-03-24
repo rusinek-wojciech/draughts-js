@@ -1,11 +1,16 @@
 import React from 'react';
 import './Piece.css';
+import {DATA} from '../../config/enum';
 
+/**
+ * Represents game piece
+ */
 class Piece extends React.Component {
     render() {
-        const classes = 'figure ' + (this.props.player === 2 ? 'figure-white' : 'figure-black');
         return (
-            <span className={classes} />
+            <span
+                className={'figure figure-' + Object.keys(DATA)[this.props.figure].toLowerCase()}
+            />
         );
     }
 }
