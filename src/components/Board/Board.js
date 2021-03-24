@@ -1,20 +1,21 @@
 import React from 'react';
 import './Board.css';
 import Piece from '../Piece/Piece';
+import {DATA, VIEW} from "../../config/enum";
 
 class Board extends React.Component {
 
     renderFigure(item) {
-        if (item !== 0) {
+        if (item !== DATA.EMPTY) {
             return <Piece player={item} />
         }
     }
 
     renderItem(item, i, j) {
         let classes = 'board-item' + ((j + i) % 2 === 0 ? ' board-item-white' : ' board-item-black');
-        if (this.props.view[i][j] === 1) {
+        if (this.props.view[i][j] === VIEW.ACTUAL) {
             classes += ' board-focused';
-        } else if (this.props.view[i][j] === 2) {
+        } else if (this.props.view[i][j] === VIEW.AVAILABLE) {
             classes += ' board-blocked';
         }
         return (

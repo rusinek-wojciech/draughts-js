@@ -1,48 +1,26 @@
 import './App.css';
 import Board from '../Board/Board';
 import React from 'react';
+import {DATA, VIEW, INIT_DATA, BOARD_SIZE} from '../../config/enum';
 
-/*
-white player - 2
-black player - 1
-empty - 0
- */
 class App extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            data: [
-                [0, 1, 0, 1, 0, 1, 0, 1],
-                [1, 0, 1, 0, 1, 0, 1, 0],
-                [0, 1, 0, 1, 0, 1, 0, 1],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [2, 0, 2, 0, 2, 0, 2, 0],
-                [0, 2, 0, 2, 0, 2, 0, 2],
-                [2, 0, 2, 0, 2, 0, 2, 0],
-            ],
-            view: [
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-            ],
+            data: INIT_DATA,
+            view: this.resetView(),
             whiteNext: true,
             rotated: false,
         };
     }
 
     isBlackPlayer(i, j) {
-        return this.state.data[i][j] === 1 && !this.state.whiteNext;
+        return this.state.data[i][j] === DATA.BLACK && !this.state.whiteNext;
     }
 
     isWhitePlayer(i, j) {
-        return this.state.data[i][j] === 2 && this.state.whiteNext;
+        return this.state.data[i][j] === DATA.WHITE && this.state.whiteNext;
     }
 
     isMoveDiagonal(i, j, di, dj) {
@@ -50,7 +28,9 @@ class App extends React.Component {
     }
 
     resetView() {
-        return Array(8).fill(null).map(() => Array(8).fill(0));
+        return Array(BOARD_SIZE)
+            .fill(null)
+            .map(() => Array(BOARD_SIZE).fill(VIEW.EMPTY));
     }
 
     handleClick(i, j) {
@@ -58,11 +38,11 @@ class App extends React.Component {
 
             // calculate view
             const view = this.resetView();
-            view[i][j] = 1;
-            for (let k = 0; k < 8; k++) {
-                for (let l = 0; l < 8; l++) {
-                    if (this.isMoveDiagonal(i, j, k, l) && this.state.data[k][l] === 0) {
-                        view[k][l] = 2;
+            view[i][j] = VIEW.ACTUAL;
+            for (let k = 0; k < BOARD_SIZE; k++) {
+                for (let l = 0; l < BOARD_SIZE; l++) {
+                    if (this.isMoveDiagonal(i, j, k, l) && this.state.data[k][l] === DATA.EMPTY) {
+                        view[k][l] = VIEW.AVAILABLE;
                     }
                 }
             }
@@ -76,7 +56,7 @@ class App extends React.Component {
             this.prevI= i;
             this.prevJ = j;
 
-        } else if (this.state.view[i][j] === 2) {
+        } else if (this.state.view[i][j] === VIEW.AVAILABLE) {
 
             // is move legal -> move
             this.move(i, j, this.prevI, this.prevJ);
@@ -89,7 +69,7 @@ class App extends React.Component {
     move(i, j, di, dj) {
         const data = this.state.data.slice();
         data[i][j] = data[di][dj];
-        data[di][dj] = 0;
+        data[di][dj] = DATA.EMPTY;
         this.setState({
             data: data,
             whiteNext: !this.state.whiteNext,
@@ -121,7 +101,6 @@ class App extends React.Component {
             </div>
         );
     }
-
 }
 
 export default App;
