@@ -12,6 +12,8 @@ export const VIEW = Object.freeze({
     'EMPTY': 0,
     'ACTUAL': 1,
     'AVAILABLE': 2,
+    'NECESSARY': 3,
+    'KILLABLE': 4,
 });
 
 export const INIT_DATA = [

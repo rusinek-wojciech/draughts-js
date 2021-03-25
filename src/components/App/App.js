@@ -18,14 +18,6 @@ class App extends React.Component {
         };
     }
 
-    isBlackPlayer(elem) {
-        return (elem === DATA.BLACK || elem === DATA.BLACK_KING) && !this.state.whiteNext;
-    }
-
-    isWhitePlayer(elem) {
-        return (elem === DATA.WHITE || elem === DATA.WHITE_KING) && this.state.whiteNext;
-    }
-
     isMoveDiagonal(i, j, di, dj) {
         return (j + di === dj + i) || (j + i === dj + di);
     }
@@ -36,58 +28,117 @@ class App extends React.Component {
             .map(() => Array(BOARD_SIZE).fill(VIEW.EMPTY));
     }
 
-    handleClick(i, j) {
-        const elem = this.state.data[i][j];
-        if (this.isWhitePlayer(elem) || this.isBlackPlayer(elem)) {
+    checkSize(i, j) {
+        return i >= 0 && j >= 0 && i < BOARD_SIZE && j < BOARD_SIZE;
+    }
 
-            // calculate view
-            const view = this.resetView();
-            view[i][j] = VIEW.ACTUAL;
-            for (let k = 0; k < BOARD_SIZE; k++) {
-                for (let l = 0; l < BOARD_SIZE; l++) {
+    check(i, j, view, fun) {
+        [i, j] = this.checkToBlock(i, j, view, fun);
+        this.checkAfter(i, j, view, fun);
+    }
 
-                    // is move diagonal and field is empty
-                    if (((j + k === l + i) || (j + i === l + k)) && this.state.data[k][l] === DATA.EMPTY) {
+    checkToBlock(i, j, view, fun) {
+        [i, j] = fun(i, j);
+        while (this.checkSize(i, j) && this.state.data[i][j] === DATA.EMPTY) {
+            view[i][j] = VIEW.AVAILABLE;
+            [i, j] = fun(i, j);
+        }
+        return [i, j];
+    }
 
-                        if (this.state.whiteNext) {
-
-                            // is move forward for white or is king
-                            if ((elem === DATA.WHITE && k < i) || elem === DATA.WHITE_KING) {
-                                view[k][l] = VIEW.AVAILABLE;
-                            }
-
-                        } else {
-
-                            // is move forward for black or is king
-                            if ((elem === DATA.BLACK && k > i) || elem === DATA.BLACK_KING) {
-                                view[k][l] = VIEW.AVAILABLE;
-                            }
-
+    checkAfter(i, j, view, fun) {
+        if (this.checkSize(i, j)) {
+            let prevI = i;
+            let prevJ = j;
+            let elem = this.state.data[i][j];
+            if (this.state.whiteNext) {
+                if (elem === DATA.BLACK || elem === DATA.BLACK_KING) {
+                    [i, j] = fun(i, j);
+                    if (this.checkSize(i, j)) {
+                        elem = this.state.data[i][j];
+                        if (elem === DATA.EMPTY) {
+                            view[i][j] = VIEW.NECESSARY;
+                            view[prevI][prevJ] = VIEW.KILLABLE;
+                        }
+                    }
+                }
+            } else {
+                if (elem === DATA.WHITE || elem === DATA.WHITE_KING) {
+                    [i, j] = fun(i, j);
+                    if (this.checkSize(i, j)) {
+                        elem = this.state.data[i][j];
+                        if (elem === DATA.EMPTY) {
+                            view[i][j] = VIEW.NECESSARY;
+                            view[prevI][prevJ] = VIEW.KILLABLE;
                         }
                     }
                 }
             }
-
-            // update view
-            this.setState({
-               view: view,
-            });
-
-            // saving as previous
-            this.prevI= i;
-            this.prevJ = j;
-
-        } else if (this.state.view[i][j] === VIEW.AVAILABLE) {
-
-            // is move legal -> move
-            this.move(i, j, this.prevI, this.prevJ);
-            this.setState({
-               view: this.resetView(),
-            });
         }
     }
 
-    move(i, j, di, dj) {
+    checker(i, j, functions) {
+        // calculate view
+        const view = this.resetView();
+        view[i][j] = VIEW.ACTUAL;
+        // check all directions
+        functions.forEach(f => this.check(i, j, view, f));
+        // saving as previous
+        this.prevI = i;
+        this.prevJ = j;
+        // update view
+        this.setState({
+            view: view,
+        });
+    }
+
+    handleClick(i, j) {
+        const elem = this.state.data[i][j];
+
+        const upperLeft = (i, j) => [--i, --j];
+        const upperRight = (i, j) => [--i, ++j];
+        const bottomLeft = (i, j) => [++i, --j];
+        const bottomRight = (i, j) => [++i, ++j];
+
+        switch (elem) {
+            case DATA.WHITE:
+                if (this.state.whiteNext) {
+                    this.checker(i, j, [upperRight, upperLeft]);
+                }
+                break;
+            case DATA.WHITE_KING:
+                if (this.state.whiteNext) {
+                    this.checker(i, j, [upperRight, upperLeft, bottomRight, bottomLeft]);
+                }
+                break;
+            case DATA.BLACK:
+                if (!this.state.whiteNext) {
+                    this.checker(i, j, [bottomRight, bottomLeft]);
+                }
+                break;
+            case DATA.BLACK_KING:
+                if (!this.state.whiteNext) {
+                    this.checker(i, j, [upperRight, upperLeft, bottomRight, bottomLeft]);
+                }
+                break;
+            default:
+                if (this.state.view[i][j] === VIEW.AVAILABLE) {
+                    this.move(i, j, this.prevI, this.prevJ);
+                    this.setState({view: this.resetView()});
+                } else if (this.state.view[i][j] === VIEW.NECESSARY) {
+                    const obj= {
+                        i: i - (i >= this.prevI ? 1 : -1),
+                        j: j - (j >= this.prevJ ? 1 : -1),
+                    };
+                    console.log(obj);
+                    this.move(i, j, this.prevI, this.prevJ, obj);
+                    this.setState({view: this.resetView()});
+                }
+                break;
+        }
+    }
+
+    move(i, j, di, dj, dead) {
 
         // copy
         const data = this.state.data.slice();
@@ -99,6 +150,11 @@ class App extends React.Component {
             data[i][j] = DATA.BLACK_KING;
         } else {
             data[i][j] = data[di][dj];
+        }
+
+        // kill
+        if (dead !== undefined) {
+            data[dead.i][dead.j] = DATA.EMPTY;
         }
 
         // clear old field after

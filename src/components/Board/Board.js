@@ -15,12 +15,9 @@ class Board extends React.Component {
     }
 
     renderItem(item, i, j) {
-        let classes = 'board-item' + ((j + i) % 2 === 0 ? ' board-item-white' : ' board-item-black');
-        if (this.props.view[i][j] === VIEW.ACTUAL) {
-            classes += ' board-focused';
-        } else if (this.props.view[i][j] === VIEW.AVAILABLE) {
-            classes += ' board-blocked';
-        }
+        const classes = 'board-item' +
+            ((j + i) % 2 === 0 ? ' board-item-white' : ' board-item-black') +
+            ' board-' + Object.keys(VIEW)[this.props.view[i][j]].toLowerCase();
         return (
             <div
                 className={classes}
