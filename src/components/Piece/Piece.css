@@ -6,7 +6,6 @@
     border-radius: 50%;
     display: inline-block;
     margin: 0 auto;
-    border: solid 1px black;
 
     /* centering */
     position: absolute;
@@ -17,17 +16,23 @@
 
 .figure-white {
     background-color: #ffffff;
-}
-
-.figure-black {
-    background-color: #373434;
-}
-
-.figure-black_king {
-    background-color: darkblue;
+    border: double 5px #ced417;
 }
 
 .figure-white_king {
-    background-color: yellow;
+    background-color: #ffffff;
+    border: double 12px #ced417;
 }
+
+.figure-black {
+    background-color: #585656;
+    border: double 5px #000000;
+}
+
+.figure-black_king {
+    background-color: #4e4a4a;
+    border: double 12px #000000;
+}
+
+
 

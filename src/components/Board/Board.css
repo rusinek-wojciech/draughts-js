@@ -29,17 +29,17 @@
 }
 
 .board-actual {
-    background-color: red;
+    background-color: #5794d9;
 }
 
 .board-available {
-    background-color: green;
+    background-color: #72b372;
 }
 
 .board-necessary {
-    background-color: dodgerblue;
+    background-color: #b83636;
 }
 
 .board-killable {
-    background-color: orange;
+    background-color: #d77b7b;
 }
