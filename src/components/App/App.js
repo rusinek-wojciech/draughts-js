@@ -3,6 +3,15 @@ import Board from '../Board/Board';
 import React from 'react';
 import {DATA, VIEW, INIT_DATA, BOARD_SIZE} from '../../config/enum';
 
+let canKill = false;
+
+const directions = [
+    (i, j) => [--i, --j],
+    (i, j) => [--i, ++j],
+    (i, j) => [++i, --j],
+    (i, j) => [++i, ++j],
+];
+
 const isEnemy = (elem, isWhiteTurn) => {
     return isWhiteTurn
         ? elem === DATA.BLACK || elem === DATA.BLACK_KING
@@ -27,38 +36,50 @@ const createView = (i, j, data, isWhiteTurn) => {
 
     const view = createEmptyView();
     view[i][j] = VIEW.ACTUAL;
+    canKill = false;
 
-    const directions = [
-        (i, j) => [--i, --j],
-        (i, j) => [--i, ++j],
-        (i, j) => [++i, --j],
-        (i, j) => [++i, ++j],
-    ];
-
-    // iterate and set view fields
-    directions.forEach(dir => {
-        let [di, dj] = dir(i, j);
-        while (validate(di, dj)) {
-            if (isAlly(data[di][dj], isWhiteTurn)) {
-                break;
-            } else if (isEnemy(data[di][dj], isWhiteTurn)) {
-
-                let [x, y] = dir(di, dj);
-                if (validate(x, y) && data[x][y] === DATA.EMPTY) {
-                    view[di][dj] = VIEW.KILLABLE;
-                    view[x][y] = VIEW.NECESSARY;
+    if (isKing(data[i][j])) {
+        directions.forEach(dir => {
+            let [di, dj] = dir(i, j);
+            while (validate(di, dj)) {
+                if (isAlly(data[di][dj], isWhiteTurn)) {
+                    break;
+                } else if (isEnemy(data[di][dj], isWhiteTurn)) {
+                    let [x, y] = dir(di, dj);
+                    while (validate(x, y) && data[x][y] === DATA.EMPTY) {
+                        view[di][dj] = VIEW.KILLABLE;
+                        view[x][y] = VIEW.NECESSARY;
+                        [x, y] = dir(x, y);
+                    }
+                    break;
+                } else {
+                    view[di][dj] = VIEW.AVAILABLE;
                 }
-                break;
-
-            } else {
-                view[di][dj] = VIEW.AVAILABLE;
+                [di, dj] = dir(di, dj);
             }
-            [di, dj] = dir(di, dj);
-        }
-    });
+        });
+    } else {
+        directions.forEach(dir => {
+            let [di, dj] = dir(i, j);
+            if (validate(di, dj)) {
+                if (isAlly(data[di][dj], isWhiteTurn)) {
+                    // nothing
+                } else if (isEnemy(data[di][dj], isWhiteTurn)) {
+                    let [x, y] = dir(di, dj);
+                    if (validate(x, y) && data[x][y] === DATA.EMPTY) {
+                        view[di][dj] = VIEW.KILLABLE;
+                        view[x][y] = VIEW.NECESSARY;
+                    }
+                } else {
+                    view[di][dj] = VIEW.AVAILABLE;
+                }
+            }
+        });
+    }
 
     // clean view
     if (view.some(row => row.includes(VIEW.NECESSARY))) {
+        canKill = true;
         return view.map(row => row.map(elem => {
             if (elem === VIEW.AVAILABLE) {
                 elem = VIEW.EMPTY;
@@ -66,14 +87,14 @@ const createView = (i, j, data, isWhiteTurn) => {
             return elem;
         }));
     } else if (isWhiteTurn && isMinion(data[i][j])) {
-        return view.map((row, di) => row.map((elem, dj) => {
+        return view.map((row, di) => row.map(elem => {
             if (i < di) {
                 elem = VIEW.EMPTY;
             }
             return elem;
         }));
     } else if (!isWhiteTurn && isMinion(data[i][j])) {
-        return view.map((row, di) => row.map((elem, dj) => {
+        return view.map((row, di) => row.map(elem => {
             if (i > di) {
                 elem = VIEW.EMPTY;
             }
@@ -103,63 +124,86 @@ class App extends React.Component {
 
         const data = this.state.data;
         const view = this.state.view;
-        const turn = this.state.isWhiteTurn;
+        const isWhiteTurn = this.state.isWhiteTurn;
 
         if (view[i][j] === VIEW.AVAILABLE) {
-
             // TODO: check if there is necessary move available
-
-            this.move(i, j, this.previous.i, this.previous.j);
-            this.setState({view: createEmptyView()});
-
+            // check if piece becomes king
+            if (isWhiteTurn && i === 0) {
+                data[i][j] = DATA.WHITE_KING;
+            } else if (!isWhiteTurn && i === (BOARD_SIZE - 1)) {
+                data[i][j] = DATA.BLACK_KING;
+            } else {
+                data[i][j] = data[this.previous.i][this.previous.j];
+            }
+            // clear old field after
+            data[this.previous.i][this.previous.j] = DATA.EMPTY;
+            this.setState({
+                data: data,
+                isWhiteTurn: !isWhiteTurn,
+                view: createEmptyView(),
+            });
         } else if (view[i][j] === VIEW.NECESSARY) {
 
-            this.move(i, j, this.previous.i, this.previous.j, {
-                i: i - (i >= this.previous.i ? 1 : -1),
-                j: j - (j >= this.previous.j ? 1 : -1),
+            let dead;
+            const iIterator = i >= this.previous.i ? 1 : -1;
+            const jIterator = j >= this.previous.j ? 1 : -1;
+            let x = i;
+            let y = j;
+            while (x !== this.previous.i || y !== this.previous.j) {
+                x -= iIterator;
+                y -= jIterator
+                if (view[x][y] === VIEW.KILLABLE) {
+                    dead = {
+                        i: x,
+                        j: y,
+                    };
+                    break;
+                }
+            }
+
+            // check if piece becomes king
+            if (isWhiteTurn && i === 0) {
+                data[i][j] = DATA.WHITE_KING;
+            } else if (!isWhiteTurn && i === (BOARD_SIZE - 1)) {
+                data[i][j] = DATA.BLACK_KING;
+            } else {
+                data[i][j] = data[this.previous.i][this.previous.j];
+            }
+
+            // kill
+            data[dead.i][dead.j] = DATA.EMPTY;
+
+            const nextView = createView(i, j, data, isWhiteTurn);
+
+            // clear old field after
+            data[this.previous.i][this.previous.j] = DATA.EMPTY;
+            if (canKill) {
+                this.setState({
+                    data: data,
+                    view: nextView,
+                });
+                this.previous = {
+                    i: i,
+                    j: j,
+                };
+                return;
+            }
+            this.setState({
+                data: data,
+                isWhiteTurn: !isWhiteTurn,
+                view: createEmptyView(),
             });
-            this.setState({view: createEmptyView()});
 
-        } else if (isAlly(data[i][j], turn)) {
-
+        } else if (isAlly(data[i][j], isWhiteTurn)) {
             this.previous = {
                 i: i,
                 j: j,
             };
             this.setState({
-                view: createView(i, j, data, turn),
+                view: createView(i, j, data, isWhiteTurn),
             });
-
         }
-    }
-
-    move(i, j, di, dj, dead) {
-
-        // copy
-        const data = this.state.data.slice();
-
-        // check if piece becomes king
-        if (this.state.isWhiteTurn && i === 0) {
-            data[i][j] = DATA.WHITE_KING;
-        } else if (!this.state.isWhiteTurn && i === (BOARD_SIZE - 1)) {
-            data[i][j] = DATA.BLACK_KING;
-        } else {
-            data[i][j] = data[di][dj];
-        }
-
-        // kill
-        if (dead !== undefined) {
-            data[dead.i][dead.j] = DATA.EMPTY;
-            // TODO: check if can kill again
-        }
-
-        // clear old field after
-        data[di][dj] = DATA.EMPTY;
-
-        this.setState({
-            data: data,
-            isWhiteTurn: !this.state.isWhiteTurn,
-        });
     }
 
     rotate() {
