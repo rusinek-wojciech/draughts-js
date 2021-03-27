@@ -25,22 +25,20 @@ const isKing = elem => elem === DATA.WHITE_KING || elem === DATA.BLACK_KING;
 
 const isMinion = elem => (elem === DATA.WHITE || elem === DATA.BLACK);
 
+export const createEmptyMatrix = () => Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(VIEW.EMPTY));
+
 class View {
 
     constructor(i, j, data, isWhiteTurn) {
         this.i = i;
         this.j = j;
-        this.matrix = this.createMatrix(i, j, data, isWhiteTurn);
         this.requireKill = false;
-    }
-
-    createEmptyMatrix() {
-        return Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(VIEW.EMPTY));
+        this.matrix = this.createMatrix(i, j, data, isWhiteTurn);
     }
 
     createMatrix(i, j, data, isWhiteTurn) {
 
-        const view = this.createEmptyMatrix();
+        const view = createEmptyMatrix();
 
         if (isAlly(data[i][j], isWhiteTurn)) {
 
