@@ -2,8 +2,9 @@ import './App.css';
 import Board from '../Board/Board';
 import React from 'react';
 import {DATA, VIEW, INIT_DATA, BOARD_SIZE} from '../../config/enum';
-import View from "../../logic/View";
+import View, {isEnemy} from "../../logic/View";
 import {createEmptyMatrix} from "../../logic/View";
+import Menu from "../Menu/Menu";
 
 /**
  * Main component with game logic
@@ -11,14 +12,30 @@ import {createEmptyMatrix} from "../../logic/View";
 class App extends React.Component {
 
     constructor(props) {
+        const data = JSON.parse(JSON.stringify(INIT_DATA));
         super(props);
-        this.views = this.createViews(INIT_DATA, true);
+        this.views = this.createViews(data, true);
         this.state = {
-            data: INIT_DATA,
+            data: data,
             isWhiteTurn: true,
             rotated: false,
             view: this.views[[0, 0]],
+            isWinner: false,
         };
+    }
+
+    isWinner(data, isWhiteTurn) {
+        let counter = 0;
+        data.forEach(row => row.forEach(elem => {
+            if (isEnemy(elem, isWhiteTurn)) {
+                counter++;
+            }
+        }));
+        if (counter === 0) {
+            this.winner = isWhiteTurn ? 'The winner is WHITE!' : 'The winner is BLACK!';
+            return true;
+        }
+        return false;
     }
 
     createViews(data, isWhiteTurn) {
@@ -95,6 +112,12 @@ class App extends React.Component {
             }
 
             this.move(i, j, data, view, isWhiteTurn);
+
+            if (this.isWinner(data, isWhiteTurn)) {
+                this.setState({isWinner: true});
+                return;
+            }
+
             this.changePlayer(data, isWhiteTurn);
 
         } else if (view.matrix[i][j] === VIEW.NECESSARY) { // kill enemy minion and move
@@ -104,12 +127,19 @@ class App extends React.Component {
 
             // check if minion can kill again
             this.views[[i, j]] = new View(i, j, data, isWhiteTurn);
+            this.views[[view.i, view.j]] = new View(view.i, view.j, data, isWhiteTurn);
             if (this.views[[i, j]].requireKill) {
                 this.setState({
                     data: data,
                     view: this.views[[i, j]],
                 });
             } else {
+
+                if (this.isWinner(data, isWhiteTurn)) {
+                    this.setState({isWinner: true});
+                    return;
+                }
+
                 this.changePlayer(data, isWhiteTurn);
             }
 
@@ -123,7 +153,20 @@ class App extends React.Component {
         this.setState({rotated: !this.state.rotated});
     }
 
+    menuHandleClick() {
+        const data = JSON.parse(JSON.stringify(INIT_DATA));
+        this.views = this.createViews(data, true);
+        this.setState({
+            data: data,
+            isWhiteTurn: true,
+            rotated: false,
+            view: this.views[[0, 0]],
+            isWinner: false,
+        });
+    }
+
     render() {
+        const isWinner = this.state.isWinner;
         return (
             <div className="app">
                 <header className="app-header">
@@ -131,15 +174,17 @@ class App extends React.Component {
                 </header>
                 <main>
                     <Board
-                        onClick={(i, j) => this.handleClick(i, j)}
+                        onClick={isWinner ? () => {} : (i, j) => this.handleClick(i, j)}
                         data={this.state.data}
                         view={this.state.view.matrix}
                         classes={this.state.rotated ? 'board rotated' : ''}
                     />
                     <p>{this.state.isWhiteTurn ? 'White round' : 'Black round'}</p>
-                    <button onClick={() => this.rotate()} >
-                        Rotate board
-                    </button>
+                    <Menu
+                        isWinner={isWinner}
+                        msg={this.winner}
+                        onClick={() => this.menuHandleClick()} />
+                    <button onClick={() => this.rotate()} >Rotate board</button>
                 </main>
             </div>
         );

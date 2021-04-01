@@ -9,7 +9,7 @@ const directions = [
 
 const validate = (i, j) => i >= 0 && j >= 0 && i < BOARD_SIZE && j < BOARD_SIZE;
 
-const isEnemy = (elem, isWhiteTurn) => {
+export const isEnemy = (elem, isWhiteTurn) => {
     return isWhiteTurn
         ? elem === DATA.BLACK || elem === DATA.BLACK_KING
         : elem === DATA.WHITE || elem === DATA.WHITE_KING;
