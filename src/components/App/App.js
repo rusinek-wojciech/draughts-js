@@ -28,7 +28,7 @@ class App extends React.Component {
             data: data,
             isWhiteTurn: true,
             rotated: false,
-            view: this.views[[0, 0]],
+            view: this.views[0][0],
             isWinner: true,
         };
     }
@@ -49,9 +49,12 @@ class App extends React.Component {
 
     createViews(data, isWhiteTurn) {
         const views = [];
-        data.forEach((row, i) =>
-            row.forEach((elem, j) =>
-                views[[i, j]] = new View(i, j, data, isWhiteTurn)));
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            views.push([]);
+            for (let j = 0; j < BOARD_SIZE; j++) {
+                views[i][j] = new View(i, j, data, isWhiteTurn);
+            }
+        }
         return views;
     }
 
@@ -86,7 +89,7 @@ class App extends React.Component {
             this.setState({
                 data: data,
                 isWhiteTurn: !isWhiteTurn,
-                view: this.views[[0, 0]],
+                view: this.views[0][0],
             });
         } else if (this.state.mode === GAMEMODE.VS_AI) {
 
@@ -97,32 +100,62 @@ class App extends React.Component {
             // create tip matrix with required moves
             const killable = [];
             const available = [];
+
             let requireKill = false;
-            Object.entries(views).forEach(v => {
-                if (v[1].requireKill) {
-                    requireKill = true;
-                    v[1].matrix.forEach((row, di) => row.forEach((elem, dj) => {
-                        if (elem === VIEW.NECESSARY) {
-                            killable.push({
-                                view: v,
-                                i: di,
-                                j: dj,
-                            });
-                        } else if (elem === VIEW.AVAILABLE) {
-                            available.push({
-                                view: v,
-                                i: di,
-                                j: dj,
-                            });
-                        }
-                    }));
-                }
+            views.forEach(row => {
+                row.forEach(view => {
+                    view.matrix.forEach((row, x) => {
+                        row.forEach((elem, y) => {
+                            if (elem === VIEW.NECESSARY) {
+                                requireKill = true;
+                                killable.push({
+                                    view: view,
+                                    i: x,
+                                    j: y,
+                                });
+                            } else if (elem === VIEW.AVAILABLE) {
+                                available.push({
+                                    view: view,
+                                    i: x,
+                                    j: y,
+                                });
+                            }
+                        });
+                    });
+                });
             });
 
             if (requireKill) {
                 const obj = killable[getRandomInt(0, killable.length - 1)];
                 this.kill(obj.i, obj.j, data, obj.view);
                 this.move(obj.i, obj.j, data, obj.view, isWhiteTurn);
+
+                // check if minion can kill again
+                views[obj.i][obj.j] = new View(obj.i, obj.j, data, isWhiteTurn);
+                obj.view = views[obj.i][obj.j];
+                views[obj.view.i][obj.view.j] = new View(obj.view.i, obj.view.j, data, isWhiteTurn);
+                while (views[obj.i][obj.j].requireKill) {
+                    // this.setState({
+                    //     data: data,
+                    // });
+
+                    views[obj.i][obj.j].matrix.forEach((row, x) => {
+                        row.forEach((elem, y) => {
+                            if (elem === VIEW.NECESSARY) {
+                                obj.i = x;
+                                obj.j = y;
+                            }
+                        });
+                    });
+
+                    this.kill(obj.i, obj.j, data, obj.view);
+                    this.move(obj.i, obj.j, data, obj.view, isWhiteTurn);
+
+                    views[obj.i][obj.j] = new View(obj.i, obj.j, data, isWhiteTurn);
+                    obj.view = views[obj.i][obj.j];
+                    views[obj.view.i][obj.view.j] = new View(obj.view.i, obj.view.j, data, isWhiteTurn);
+                }
+
             } else {
                 const obj = available[getRandomInt(0, available.length - 1)];
                 this.move(obj.i, obj.j, data, obj.view, isWhiteTurn);
@@ -133,7 +166,12 @@ class App extends React.Component {
                 return;
             }
 
-            this.changePlayer(data, !isWhiteTurn);
+            this.views = this.createViews(data, !isWhiteTurn);
+            this.setState({
+                data: data,
+                isWhiteTurn: !isWhiteTurn,
+                view: this.views[0][0],
+            });
 
         }
     }
@@ -149,15 +187,20 @@ class App extends React.Component {
             // create tip matrix with required moves
             const temp = createEmptyMatrix();
             let requireKill = false;
-            Object.entries(this.views).forEach(v => {
-                if (v[1].requireKill) {
-                    requireKill = true;
-                    v[1].matrix.forEach((row, di) => row.forEach((elem, dj) => {
-                        if (elem === VIEW.ACTUAL || elem === VIEW.KILLABLE) {
-                            temp[di][dj] = elem;
-                        }
-                    }));
-                }
+
+            this.views.forEach(row => {
+               row.forEach(view => {
+                   if (view.requireKill) {
+                       requireKill = true;
+                       view.matrix.forEach((row, x) => {
+                          row.forEach((elem, y) => {
+                              if (elem === VIEW.ACTUAL || elem === VIEW.KILLABLE) {
+                                  temp[x][y] = elem;
+                              }
+                          });
+                       });
+                   }
+               });
             });
 
             if (requireKill) {
@@ -184,12 +227,12 @@ class App extends React.Component {
             this.move(i, j, data, view, isWhiteTurn);
 
             // check if minion can kill again
-            this.views[[i, j]] = new View(i, j, data, isWhiteTurn);
-            this.views[[view.i, view.j]] = new View(view.i, view.j, data, isWhiteTurn);
-            if (this.views[[i, j]].requireKill) {
+            this.views[i][j] = new View(i, j, data, isWhiteTurn);
+            this.views[view.i][view.j] = new View(view.i, view.j, data, isWhiteTurn);
+            if (this.views[i][j].requireKill) {
                 this.setState({
                     data: data,
-                    view: this.views[[i, j]],
+                    view: this.views[i][j],
                 });
             } else {
 
@@ -202,7 +245,7 @@ class App extends React.Component {
             }
 
         } else { // change view
-            this.setState({view: this.views[[i, j]]});
+            this.setState({view: this.views[i][j]});
         }
 
     }
@@ -218,7 +261,7 @@ class App extends React.Component {
             data: data,
             isWhiteTurn: true,
             rotated: false,
-            view: this.views[[0, 0]],
+            view: this.views[0][0],
             isWinner: false,
             mode: GAMEMODE.VS_PLAYER,
         });
@@ -231,10 +274,14 @@ class App extends React.Component {
             data: data,
             isWhiteTurn: isWhitePlayer,
             rotated: false,
-            view: this.views[[0, 0]],
+            view: this.views[0][0],
             isWinner: false,
             mode: GAMEMODE.VS_AI,
         });
+
+        if (!isWhitePlayer) {
+            this.changePlayer(data, false);
+        }
     }
 
     render() {
