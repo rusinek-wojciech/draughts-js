@@ -63,8 +63,6 @@ class App extends React.Component {
         });
     }
 
-
-
     handleClick(i, j) {
 
         const view = this.state.view;
@@ -95,7 +93,6 @@ class App extends React.Component {
                 });
                 return;
             }
-
 
             this.move(i, j, data, view, isWhiteTurn);
             this.changePlayer(data, isWhiteTurn);
@@ -148,6 +145,5 @@ class App extends React.Component {
         );
     }
 }
-
 
 export default App;
