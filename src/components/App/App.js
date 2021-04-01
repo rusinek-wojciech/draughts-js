@@ -1,10 +1,19 @@
 import './App.css';
 import Board from '../Board/Board';
 import React from 'react';
-import {DATA, VIEW, INIT_DATA, BOARD_SIZE} from '../../config/enum';
+import {DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE} from '../../config/enum';
 import View, {isEnemy} from "../../logic/View";
 import {createEmptyMatrix} from "../../logic/View";
 import Menu from "../Menu/Menu";
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ */
+const getRandomInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 /**
  * Main component with game logic
@@ -12,15 +21,15 @@ import Menu from "../Menu/Menu";
 class App extends React.Component {
 
     constructor(props) {
-        const data = JSON.parse(JSON.stringify(INIT_DATA));
         super(props);
+        const data = JSON.parse(JSON.stringify(INIT_DATA));
         this.views = this.createViews(data, true);
         this.state = {
             data: data,
             isWhiteTurn: true,
             rotated: false,
             view: this.views[[0, 0]],
-            isWinner: false,
+            isWinner: true,
         };
     }
 
@@ -72,12 +81,61 @@ class App extends React.Component {
     }
 
     changePlayer(data, isWhiteTurn) {
-        this.views = this.createViews(data, !isWhiteTurn);
-        this.setState({
-            data: data,
-            isWhiteTurn: !isWhiteTurn,
-            view: this.views[[0, 0]],
-        });
+        if (this.state.mode === GAMEMODE.VS_PLAYER) {
+            this.views = this.createViews(data, !isWhiteTurn);
+            this.setState({
+                data: data,
+                isWhiteTurn: !isWhiteTurn,
+                view: this.views[[0, 0]],
+            });
+        } else if (this.state.mode === GAMEMODE.VS_AI) {
+
+            isWhiteTurn = !isWhiteTurn;
+
+            const views = this.createViews(data, isWhiteTurn);
+
+            // create tip matrix with required moves
+            const killable = [];
+            const available = [];
+            let requireKill = false;
+            Object.entries(views).forEach(v => {
+                if (v[1].requireKill) {
+                    requireKill = true;
+                    v[1].matrix.forEach((row, di) => row.forEach((elem, dj) => {
+                        if (elem === VIEW.NECESSARY) {
+                            killable.push({
+                                view: v,
+                                i: di,
+                                j: dj,
+                            });
+                        } else if (elem === VIEW.AVAILABLE) {
+                            available.push({
+                                view: v,
+                                i: di,
+                                j: dj,
+                            });
+                        }
+                    }));
+                }
+            });
+
+            if (requireKill) {
+                const obj = killable[getRandomInt(0, killable.length - 1)];
+                this.kill(obj.i, obj.j, data, obj.view);
+                this.move(obj.i, obj.j, data, obj.view, isWhiteTurn);
+            } else {
+                const obj = available[getRandomInt(0, available.length - 1)];
+                this.move(obj.i, obj.j, data, obj.view, isWhiteTurn);
+            }
+
+            if (this.isWinner(data, isWhiteTurn)) {
+                this.setState({isWinner: true});
+                return;
+            }
+
+            this.changePlayer(data, !isWhiteTurn);
+
+        }
     }
 
     handleClick(i, j) {
@@ -153,7 +211,7 @@ class App extends React.Component {
         this.setState({rotated: !this.state.rotated});
     }
 
-    menuHandleClick() {
+    againstPlayer() {
         const data = JSON.parse(JSON.stringify(INIT_DATA));
         this.views = this.createViews(data, true);
         this.setState({
@@ -162,6 +220,20 @@ class App extends React.Component {
             rotated: false,
             view: this.views[[0, 0]],
             isWinner: false,
+            mode: GAMEMODE.VS_PLAYER,
+        });
+    }
+
+    againstAI(isWhitePlayer) {
+        const data = JSON.parse(JSON.stringify(INIT_DATA));
+        this.views = this.createViews(data, isWhitePlayer);
+        this.setState({
+            data: data,
+            isWhiteTurn: isWhitePlayer,
+            rotated: false,
+            view: this.views[[0, 0]],
+            isWinner: false,
+            mode: GAMEMODE.VS_AI,
         });
     }
 
@@ -183,7 +255,11 @@ class App extends React.Component {
                     <Menu
                         isWinner={isWinner}
                         msg={this.winner}
-                        onClick={() => this.menuHandleClick()} />
+                        onClick={{
+                            againstPlayer: () => this.againstPlayer(),
+                            againstAI: (isWhitePlayer) => this.againstAI(isWhitePlayer),
+                        }}
+                    />
                     <button onClick={() => this.rotate()} >Rotate board</button>
                 </main>
             </div>
