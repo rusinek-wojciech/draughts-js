@@ -267,21 +267,17 @@ class App extends React.Component {
         });
     }
 
-    againstAI(isWhitePlayer) {
+    againstAI() {
         const data = JSON.parse(JSON.stringify(INIT_DATA));
-        this.views = this.createViews(data, isWhitePlayer);
+        this.views = this.createViews(data, true);
         this.setState({
             data: data,
-            isWhiteTurn: isWhitePlayer,
+            isWhiteTurn: true,
             rotated: false,
             view: this.views[0][0],
             isWinner: false,
             mode: GAMEMODE.VS_AI,
         });
-
-        if (!isWhitePlayer) {
-            this.changePlayer(data, false);
-        }
     }
 
     render() {
@@ -304,7 +300,7 @@ class App extends React.Component {
                         msg={this.winner}
                         onClick={{
                             againstPlayer: () => this.againstPlayer(),
-                            againstAI: (isWhitePlayer) => this.againstAI(isWhitePlayer),
+                            againstAI: () => this.againstAI(),
                         }}
                     />
                     <button onClick={() => this.rotate()} >Rotate board</button>

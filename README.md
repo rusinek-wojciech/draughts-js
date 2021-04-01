@@ -1,6 +1,5 @@
 
 Todo:
-- choose color
 - minimax algorithm
-- ai mode
 - animations
+- out of move lose

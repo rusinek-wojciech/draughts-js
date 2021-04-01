@@ -12,11 +12,8 @@ class Menu extends React.Component {
                 <div className="menu-item" onClick={() => this.props.onClick.againstPlayer() }>
                     Play against player
                 </div>
-                <div className="menu-item" onClick={() => this.props.onClick.againstAI(true)} >
-                    Play against AI as white
-                </div>
-                <div className="menu-item" onClick={() => this.props.onClick.againstAI(false)}>
-                    Play against AI as black
+                <div className="menu-item" onClick={() => this.props.onClick.againstAI()} >
+                    Play against AI
                 </div>
             </div>
         );
