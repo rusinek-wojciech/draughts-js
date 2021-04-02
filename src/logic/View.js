@@ -9,13 +9,13 @@ const directions = [
 
 const validate = (i, j) => i >= 0 && j >= 0 && i < BOARD_SIZE && j < BOARD_SIZE;
 
-export const isEnemy = (elem, isWhiteTurn) => {
+const isEnemy = (elem, isWhiteTurn) => {
     return isWhiteTurn
         ? elem === DATA.BLACK || elem === DATA.BLACK_KING
         : elem === DATA.WHITE || elem === DATA.WHITE_KING;
 }
 
-const isAlly = (elem, isWhiteTurn) => {
+export const isAlly = (elem, isWhiteTurn) => {
     return isWhiteTurn
         ? elem === DATA.WHITE || elem === DATA.WHITE_KING
         : elem === DATA.BLACK || elem === DATA.BLACK_KING;
@@ -33,12 +33,14 @@ class View {
         this.i = i;
         this.j = j;
         this.requireKill = false;
+        this.isBlocked = false;
         this.matrix = this.createMatrix(i, j, data, isWhiteTurn);
     }
 
     createMatrix(i, j, data, isWhiteTurn) {
 
-        const view = createEmptyMatrix();
+        let counter = 0;
+        let view = createEmptyMatrix();
 
         if (isAlly(data[i][j], isWhiteTurn)) {
 
@@ -56,10 +58,12 @@ class View {
                                 view[di][dj] = VIEW.KILLABLE;
                                 view[x][y] = VIEW.NECESSARY;
                                 [x, y] = dir(x, y);
+                                counter++;
                             }
                             break;
                         } else {
                             view[di][dj] = VIEW.AVAILABLE;
+                            counter++;
                         }
                         [di, dj] = dir(di, dj);
                     }
@@ -75,9 +79,11 @@ class View {
                             if (validate(x, y) && data[x][y] === DATA.EMPTY) {
                                 view[di][dj] = VIEW.KILLABLE;
                                 view[x][y] = VIEW.NECESSARY;
+                                counter++;
                             }
                         } else {
                             view[di][dj] = VIEW.AVAILABLE;
+                            counter++;
                         }
                     }
                 });
@@ -86,27 +92,38 @@ class View {
             // clean view
             if (view.some(row => row.includes(VIEW.NECESSARY))) {
                 this.requireKill = true;
-                return view.map(row => row.map(elem => {
+                view = view.map(row => row.map(elem => {
                     if (elem === VIEW.AVAILABLE) {
                         elem = VIEW.EMPTY;
+                        counter--;
                     }
                     return elem;
                 }));
             } else if (isWhiteTurn && isMinion(data[i][j])) {
-                return view.map((row, di) => row.map(elem => {
+                view = view.map((row, di) => row.map(elem => {
                     if (i < di) {
-                        elem = VIEW.EMPTY;
+                        if (elem !== VIEW.EMPTY) {
+                            elem = VIEW.EMPTY;
+                            counter--;
+                        }
                     }
                     return elem;
                 }));
             } else if (!isWhiteTurn && isMinion(data[i][j])) {
-                return view.map((row, di) => row.map(elem => {
+                view = view.map((row, di) => row.map(elem => {
                     if (i > di) {
-                        elem = VIEW.EMPTY;
+                        if (elem !== VIEW.EMPTY) {
+                            elem = VIEW.EMPTY;
+                            counter--;
+                        }
                     }
                     return elem;
                 }));
             }
+        }
+
+        if (counter === 0) {
+            this.isBlocked = true;
         }
 
         return view;

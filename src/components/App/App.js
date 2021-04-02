@@ -2,7 +2,7 @@ import './App.css';
 import Board from '../Board/Board';
 import React from 'react';
 import {DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE} from '../../config/enum';
-import View, {isEnemy} from "../../logic/View";
+import View, {isAlly} from "../../logic/View";
 import {createEmptyMatrix} from "../../logic/View";
 import Menu from "../Menu/Menu";
 
@@ -33,15 +33,26 @@ class App extends React.Component {
         };
     }
 
-    isWinner(data, isWhiteTurn) {
+    isWinner(data, views, isWhiteTurn) {
         let counter = 0;
         data.forEach(row => row.forEach(elem => {
-            if (isEnemy(elem, isWhiteTurn)) {
+            if (isAlly(elem, isWhiteTurn)) {
                 counter++;
             }
         }));
-        if (counter === 0) {
-            this.winner = isWhiteTurn ? 'The winner is WHITE!' : 'The winner is BLACK!';
+
+        let isPlayerBlocked = true;
+        loop: for (let i = 0; i < BOARD_SIZE; i++) {
+            for (let j = 0; j < BOARD_SIZE; j++) {
+                if (!views[i][j].isBlocked) {
+                    isPlayerBlocked = false;
+                    break loop;
+                }
+            }
+        }
+
+        if (counter === 0 || isPlayerBlocked) {
+            this.winner = isWhiteTurn ? 'The winner is BLACK!' : 'The winner is WHITE!';
             return true;
         }
         return false;
@@ -84,18 +95,24 @@ class App extends React.Component {
     }
 
     changePlayer(data, isWhiteTurn) {
+
+        isWhiteTurn = !isWhiteTurn;
+        const views = this.createViews(data, isWhiteTurn);
+        if (this.isWinner(data, views, isWhiteTurn)) {
+            this.setState({isWinner: true});
+            return;
+        }
+
         if (this.state.mode === GAMEMODE.VS_PLAYER) {
-            this.views = this.createViews(data, !isWhiteTurn);
+
+            this.views = views;
             this.setState({
                 data: data,
-                isWhiteTurn: !isWhiteTurn,
+                isWhiteTurn: isWhiteTurn,
                 view: this.views[0][0],
             });
+
         } else if (this.state.mode === GAMEMODE.VS_AI) {
-
-            isWhiteTurn = !isWhiteTurn;
-
-            const views = this.createViews(data, isWhiteTurn);
 
             // create tip matrix with required moves
             const killable = [];
@@ -161,11 +178,6 @@ class App extends React.Component {
                 this.move(obj.i, obj.j, data, obj.view, isWhiteTurn);
             }
 
-            if (this.isWinner(data, isWhiteTurn)) {
-                this.setState({isWinner: true});
-                return;
-            }
-
             this.views = this.createViews(data, !isWhiteTurn);
             this.setState({
                 data: data,
@@ -214,11 +226,6 @@ class App extends React.Component {
 
             this.move(i, j, data, view, isWhiteTurn);
 
-            if (this.isWinner(data, isWhiteTurn)) {
-                this.setState({isWinner: true});
-                return;
-            }
-
             this.changePlayer(data, isWhiteTurn);
 
         } else if (view.matrix[i][j] === VIEW.NECESSARY) { // kill enemy minion and move
@@ -235,11 +242,6 @@ class App extends React.Component {
                     view: this.views[i][j],
                 });
             } else {
-
-                if (this.isWinner(data, isWhiteTurn)) {
-                    this.setState({isWinner: true});
-                    return;
-                }
 
                 this.changePlayer(data, isWhiteTurn);
             }
