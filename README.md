@@ -1,5 +1,5 @@
 
 Todo:
-- minimax algorithm
-- animations
-- out of move lose
+- remove bug with changing minion when kill series
+- bot with minimax algorithm
+- add animations

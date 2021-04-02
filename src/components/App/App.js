@@ -34,28 +34,22 @@ class App extends React.Component {
     }
 
     isWinner(data, views, isWhiteTurn) {
-        let counter = 0;
-        data.forEach(row => row.forEach(elem => {
-            if (isAlly(elem, isWhiteTurn)) {
-                counter++;
-            }
-        }));
 
+        let counter = 0;
         let isPlayerBlocked = true;
-        loop: for (let i = 0; i < BOARD_SIZE; i++) {
+
+        for (let i = 0; i < BOARD_SIZE; i++) {
             for (let j = 0; j < BOARD_SIZE; j++) {
+                if (isAlly(data[i][j], isWhiteTurn)) {
+                    counter++;
+                }
                 if (!views[i][j].isBlocked) {
                     isPlayerBlocked = false;
-                    break loop;
                 }
             }
         }
 
-        if (counter === 0 || isPlayerBlocked) {
-            this.winner = isWhiteTurn ? 'The winner is BLACK!' : 'The winner is WHITE!';
-            return true;
-        }
-        return false;
+        return counter === 0 || isPlayerBlocked;
     }
 
     createViews(data, isWhiteTurn) {
@@ -100,6 +94,7 @@ class App extends React.Component {
         const views = this.createViews(data, isWhiteTurn);
         if (this.isWinner(data, views, isWhiteTurn)) {
             this.setState({isWinner: true});
+            this.winner = isWhiteTurn ? 'The winner is BLACK!' : 'The winner is WHITE!';
             return;
         }
 
@@ -119,28 +114,24 @@ class App extends React.Component {
             const available = [];
 
             let requireKill = false;
-            views.forEach(row => {
-                row.forEach(view => {
-                    view.matrix.forEach((row, x) => {
-                        row.forEach((elem, y) => {
-                            if (elem === VIEW.NECESSARY) {
-                                requireKill = true;
-                                killable.push({
-                                    view: view,
-                                    i: x,
-                                    j: y,
-                                });
-                            } else if (elem === VIEW.AVAILABLE) {
-                                available.push({
-                                    view: view,
-                                    i: x,
-                                    j: y,
-                                });
-                            }
+            views.forEach(row => row.forEach(view => {
+                view.matrix.forEach((row, x) => row.forEach((elem, y) => {
+                    if (elem === VIEW.NECESSARY) {
+                        requireKill = true;
+                        killable.push({
+                            view: view,
+                            i: x,
+                            j: y,
                         });
-                    });
-                });
-            });
+                    } else if (elem === VIEW.AVAILABLE) {
+                        available.push({
+                            view: view,
+                            i: x,
+                            j: y,
+                        });
+                    }
+                }));
+            }));
 
             if (requireKill) {
                 const obj = killable[getRandomInt(0, killable.length - 1)];
@@ -188,6 +179,7 @@ class App extends React.Component {
         }
     }
 
+
     handleClick(i, j) {
 
         const view = this.state.view;
@@ -196,36 +188,28 @@ class App extends React.Component {
 
         if (view.matrix[i][j] === VIEW.AVAILABLE) { // move ally minion
 
-            // create tip matrix with required moves
-            const temp = createEmptyMatrix();
+            const matrix = createEmptyMatrix();
             let requireKill = false;
 
-            this.views.forEach(row => {
-               row.forEach(view => {
-                   if (view.requireKill) {
-                       requireKill = true;
-                       view.matrix.forEach((row, x) => {
-                          row.forEach((elem, y) => {
-                              if (elem === VIEW.ACTUAL || elem === VIEW.KILLABLE) {
-                                  temp[x][y] = elem;
-                              }
-                          });
-                       });
-                   }
-               });
-            });
+            // if require kills, create tip matrix and set as view
+            this.views.forEach(row => row.forEach(v => {
+                if (v.requireKill) {
+                    requireKill = true;
+                    v.matrix.forEach((row, x) => row.forEach((elem, y) => {
+                        if (elem === VIEW.ACTUAL || elem === VIEW.KILLABLE) {
+                            matrix[x][y] = elem;
+                        }
+                    }));
+                }
+            }));
 
             if (requireKill) {
-                const result = view;
-                result.matrix = temp;
-                this.setState({
-                    view: result,
-                });
+                view.matrix = matrix;
+                this.setState({});
                 return;
             }
 
             this.move(i, j, data, view, isWhiteTurn);
-
             this.changePlayer(data, isWhiteTurn);
 
         } else if (view.matrix[i][j] === VIEW.NECESSARY) { // kill enemy minion and move
@@ -236,13 +220,13 @@ class App extends React.Component {
             // check if minion can kill again
             this.views[i][j] = new View(i, j, data, isWhiteTurn);
             this.views[view.i][view.j] = new View(view.i, view.j, data, isWhiteTurn);
+
             if (this.views[i][j].requireKill) {
                 this.setState({
                     data: data,
                     view: this.views[i][j],
                 });
             } else {
-
                 this.changePlayer(data, isWhiteTurn);
             }
 
