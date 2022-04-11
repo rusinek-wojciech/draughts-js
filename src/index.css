@@ -1,7 +1,9 @@
 html {
   box-sizing: border-box;
 }
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: inherit;
 }
 
@@ -17,4 +19,146 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* =====================app=======================* */
+
+.app {
+  text-align: center;
+}
+
+.app-logo {
+  height: 5vmin;
+  pointer-events: none;
+}
+
+.app-header {
+  background-color: #282c34;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+/* =====================board=======================* */
+
+.board {
+  margin: 50px auto;
+  transition: transform 1s;
+  display: table;
+  border-collapse: collapse;
+  width: 80vw;
+  height: 80vw;
+  max-height: 500px;
+  max-width: 500px;
+  box-shadow: lightslategrey 0 0 50px;
+}
+
+.board-row {
+  display: table-row;
+}
+
+.board-item {
+  display: table-cell;
+  border: solid 2px black;
+  position: relative;
+}
+
+.board-item-black {
+  background-color: lightslategrey;
+}
+
+.board-item-white {
+  background-color: antiquewhite;
+}
+
+.board-actual {
+  background-color: #5794d9;
+}
+
+.board-available {
+  background-color: #72b372;
+}
+
+.board-necessary {
+  background-color: #b83636;
+}
+
+.board-killable {
+  background-color: #d77b7b;
+}
+
+/* =====================figure=======================* */
+
+.figure {
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 auto;
+
+  /* centering */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.figure-white {
+  background-color: #ffffff;
+  border: double 5px #ced417;
+}
+
+.figure-white_king {
+  background-color: #ffffff;
+  border: double 12px #ced417;
+}
+
+.figure-black {
+  background-color: #585656;
+  border: double 5px #000000;
+}
+
+.figure-black_king {
+  background-color: #4e4a4a;
+  border: double 12px #000000;
+}
+
+/* =====================menu=======================* */
+
+.menu {
+  width: 70vw;
+  max-width: 400px;
+  background-color: #2c313b;
+  border-radius: 5px;
+  box-shadow: 0 0 30px black;
+  color: white;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.menu-item {
+  padding: 10px;
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.menu-item:hover {
+  background-color: #424c64;
+}
+
+.menu-message {
+  padding: 20px;
+  font-size: 1.5em;
 }

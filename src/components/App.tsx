@@ -1,9 +1,8 @@
-import './App.css'
-import { Board } from '../Board/Board'
+import { Board } from './Board'
 import React from 'react'
-import { DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE } from '../../config/enum'
-import { View, isAlly, createEmptyMatrix } from '../../logic/view'
-import { Menu } from '../Menu/Menu'
+import { DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE } from '../config/enum'
+import { View, isAlly, createEmptyMatrix } from '../logic/view'
+import { Menu } from './Menu'
 
 interface State {
   data: number[][]

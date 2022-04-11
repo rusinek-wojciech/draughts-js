@@ -1,5 +1,4 @@
-import './Piece.css'
-import { DATA } from '../../config/enum'
+import { DATA } from '../config/enum'
 
 /**
  * Represents game piece

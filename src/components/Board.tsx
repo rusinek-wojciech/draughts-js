@@ -1,7 +1,6 @@
 import React from 'react'
-import './Board.css'
-import { Piece } from '../Piece/Piece'
-import { DATA, VIEW } from '../../config/enum'
+import { Piece } from './Piece'
+import { DATA, VIEW } from '../config/enum'
 
 interface Props {
   classes: string

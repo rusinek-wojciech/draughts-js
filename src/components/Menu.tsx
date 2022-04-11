@@ -1,5 +1,3 @@
-import './Menu.css'
-
 interface Props {
   isWinner: boolean
   msg: string
