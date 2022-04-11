@@ -1,4 +1,4 @@
-import { BOARD_SIZE, DATA, VIEW } from '../config/enum'
+import { BOARD_SIZE, DATA, VIEW } from 'config/enum'
 
 const directions = [
   (i: number, j: number): number[] => [--i, --j],

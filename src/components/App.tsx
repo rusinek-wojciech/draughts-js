@@ -1,8 +1,9 @@
-import { Board } from './Board'
-import React from 'react'
-import { DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE } from '../config/enum'
-import { View, isAlly, createEmptyMatrix } from '../logic/view'
-import { Menu } from './Menu'
+import { Component } from 'react'
+
+import { DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE } from 'config/enum'
+import { View, isAlly, createEmptyMatrix } from 'logic/view'
+import Menu from 'components/Menu'
+import Board from 'components/Board'
 
 interface State {
   data: number[][]
@@ -25,7 +26,7 @@ const getRandomInt = (min: number, max: number): number => {
 /**
  * Main component with game logic
  */
-export class App extends React.Component<{}, State> {
+class App extends Component<{}, State> {
   private views: View[][]
   private winner: string = ''
 
@@ -315,10 +316,8 @@ export class App extends React.Component<{}, State> {
           <Menu
             isWinner={isWinner}
             msg={this.winner}
-            onClick={{
-              againstPlayer: () => this.againstPlayer(),
-              againstAI: () => this.againstAI(),
-            }}
+            onAgainstPlayer={() => this.againstPlayer()}
+            onAgaistAI={() => this.againstAI()}
           />
           <button onClick={() => this.rotate()}>Rotate board</button>
         </main>
@@ -326,3 +325,5 @@ export class App extends React.Component<{}, State> {
     )
   }
 }
+
+export default App

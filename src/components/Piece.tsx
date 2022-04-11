@@ -1,13 +1,15 @@
-import { DATA } from '../config/enum'
+import { DATA } from 'config/enum'
 
-/**
- * Represents game piece
- */
-export const Piece = (props: any) => {
-  const { figure } = props
+interface Props {
+  figure: number
+}
+
+const Piece = ({ figure }: Props) => {
   return (
     <span
       className={'figure figure-' + Object.keys(DATA)[figure].toLowerCase()}
     />
   )
 }
+
+export default Piece

@@ -1,26 +1,22 @@
 interface Props {
   isWinner: boolean
   msg: string
-  onClick: {
-    againstPlayer: () => void
-    againstAI: () => void
-  }
+  onAgainstPlayer: () => void
+  onAgaistAI: () => void
 }
 
-/**
- * Floating menu
- */
-export const Menu: React.FC<Props> = (props) => {
-  const { isWinner, msg, onClick } = props
+const Menu = ({ isWinner, msg, onAgainstPlayer, onAgaistAI }: Props) => {
   return (
     <div className="menu" style={{ display: isWinner ? 'block' : 'none' }}>
       <div className="menu-message">{msg}</div>
-      <div className="menu-item" onClick={() => onClick.againstPlayer()}>
-        Play against player
+      <div className="menu-item" onClick={onAgainstPlayer}>
+        Player against player
       </div>
-      <div className="menu-item" onClick={() => onClick.againstAI()}>
-        Play against AI
+      <div className="menu-item" onClick={onAgaistAI}>
+        Player against AI
       </div>
     </div>
   )
 }
+
+export default Menu

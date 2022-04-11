@@ -1,6 +1,5 @@
-import React from 'react'
-import { Piece } from './Piece'
-import { DATA, VIEW } from '../config/enum'
+import Piece from 'components/Piece'
+import { DATA, VIEW } from 'config/enum'
 
 interface Props {
   classes: string
@@ -9,27 +8,17 @@ interface Props {
   onClick: (i: number, j: number) => void
 }
 
-/**
- * Defines Board rendering
- */
-export const Board: React.FC<Props> = (props) => {
-  const { classes, data, view, onClick } = props
-
-  const renderFigure = (item: number) => {
-    if (item !== DATA.EMPTY) {
-      return <Piece figure={item} />
-    }
-  }
-
+const Board = ({ classes, data, view, onClick }: Props) => {
   const renderItem = (item: number, i: number, j: number) => {
     const classes =
       'board-item' +
       ((j + i) % 2 === 0 ? ' board-item-white' : ' board-item-black') +
       ' board-' +
       Object.keys(VIEW)[view[i][j]].toLowerCase()
+    const notEmpty = item !== DATA.EMPTY
     return (
       <div className={classes} key={j} onClick={() => onClick(i, j)}>
-        {renderFigure(item)}
+        {notEmpty && <Piece figure={item} />}
       </div>
     )
   }
@@ -48,3 +37,5 @@ export const Board: React.FC<Props> = (props) => {
     </div>
   )
 }
+
+export default Board

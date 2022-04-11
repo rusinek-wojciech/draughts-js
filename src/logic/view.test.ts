@@ -1,5 +1,5 @@
-import { View, createEmptyMatrix } from './view'
-import { DATA, VIEW, BOARD_SIZE } from '../config/enum'
+import { View, createEmptyMatrix } from 'logic/view'
+import { DATA, VIEW, BOARD_SIZE } from 'config/enum'
 
 test('should create empty matrix', () => {
   const data = createEmptyMatrix()
