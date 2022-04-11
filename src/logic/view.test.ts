@@ -1,4 +1,4 @@
-import { View, createEmptyMatrix } from './View'
+import { View, createEmptyMatrix } from './view'
 import { DATA, VIEW, BOARD_SIZE } from '../config/enum'
 
 test('should create empty matrix', () => {
