@@ -116,7 +116,7 @@ code {
   border: double 5px #ced417;
 }
 
-.figure-white_king {
+.figure-white-king {
   background-color: #ffffff;
   border: double 12px #ced417;
 }
@@ -126,7 +126,7 @@ code {
   border: double 5px #000000;
 }
 
-.figure-black_king {
+.figure-black-king {
   background-color: #4e4a4a;
   border: double 12px #000000;
 }

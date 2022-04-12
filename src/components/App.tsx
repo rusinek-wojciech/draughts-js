@@ -1,329 +1,96 @@
-import { Component } from 'react'
+import { useState, MouseEvent } from 'react'
 
-import { DATA, VIEW, INIT_DATA, BOARD_SIZE, GAMEMODE } from 'config/enum'
-import { View, isAlly, createEmptyMatrix } from 'logic/view'
+import ChessBoard from 'components/ChessBoard'
+import { Board } from 'logic/utils'
 import Menu from 'components/Menu'
-import Board from 'components/Board'
 
-interface State {
-  data: number[][]
-  isWhiteTurn: boolean
-  rotated: boolean
-  view: View
-  isWinner: boolean
-  mode: number
+type GameState =
+  | 'white-turn'
+  | 'black-turn'
+  | 'white-win'
+  | 'black-win'
+  | 'prepare'
+
+interface Position {
+  x: number
+  y: number
 }
 
-/**
- * Returns a random integer between min (inclusive) and max (inclusive).
- */
-const getRandomInt = (min: number, max: number): number => {
-  min = Math.ceil(min)
-  max = Math.floor(max)
-  return Math.floor(Math.random() * (max - min + 1)) + min
+const getSupportFields = (
+  { x, y }: Position,
+  board: Board,
+  state: GameState
+) => {
+  const field = board.field(x, y)
+  if (field.owner === 'black' && state === 'black-turn') {
+    field.support = 'actual'
+  }
+  if (field.owner === 'white' && state === 'white-turn') {
+    field.support = 'actual'
+  }
 }
 
-/**
- * Main component with game logic
- */
-class App extends Component<{}, State> {
-  private views: View[][]
-  private winner: string = ''
+const App = () => {
+  const [gameState, setGameState] = useState<GameState>('prepare')
+  const [board, setBoard] = useState<Board>(new Board())
+  const [position, setPosition] = useState<Position>()
 
-  constructor(props: {}) {
-    super(props)
-    const data: number[][] = JSON.parse(JSON.stringify(INIT_DATA))
-    this.views = this.createViews(data, true)
-    this.state = {
-      data: data,
-      isWhiteTurn: true,
-      rotated: false,
-      view: this.views[0][0],
-      isWinner: true,
-      mode: -1,
-    }
+  const handleFieldClick = (
+    x: number,
+    y: number,
+    e: MouseEvent<HTMLDivElement>
+  ) => {
+    getSupportFields({ x, y }, board, gameState)
+    setBoard(board)
   }
 
-  isWinner(data: number[][], views: View[][], isWhiteTurn: boolean): boolean {
-    let counter = 0
-    let isPlayerBlocked = true
-
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        if (isAlly(data[i][j], isWhiteTurn)) {
-          counter++
-        }
-        if (!views[i][j].isBlocked) {
-          isPlayerBlocked = false
-        }
-      }
-    }
-
-    return counter === 0 || isPlayerBlocked
+  const playerVsPlayer = () => {
+    setGameState('white-turn')
+    setBoard(new Board())
   }
 
-  createViews(data: number[][], isWhiteTurn: boolean): View[][] {
-    const views: View[][] = []
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      views.push([])
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        views[i][j] = new View(i, j, data, isWhiteTurn)
-      }
-    }
-    return views
+  const playerVsAi = () => {
+    setGameState('white-turn')
+    setBoard(new Board())
   }
 
-  move(
-    i: number,
-    j: number,
-    data: number[][],
-    view: View,
-    isWhiteTurn: boolean
-  ): void {
-    if (isWhiteTurn && i === 0) {
-      data[i][j] = DATA.WHITE_KING
-    } else if (!isWhiteTurn && i === BOARD_SIZE - 1) {
-      data[i][j] = DATA.BLACK_KING
-    } else {
-      data[i][j] = data[view.i][view.j]
-    }
-    data[view.i][view.j] = DATA.EMPTY
-  }
+  const menuEnabled =
+    gameState === 'white-win' ||
+    gameState === 'black-win' ||
+    gameState === 'prepare'
 
-  kill(i: number, j: number, data: number[][], view: View): void {
-    const iIterator = i >= view.i ? 1 : -1
-    const jIterator = j >= view.j ? 1 : -1
-    let [x, y] = [i, j]
-    while (x !== view.i || y !== view.j) {
-      x -= iIterator
-      y -= jIterator
-      if (view.matrix[x][y] === VIEW.KILLABLE) {
-        data[x][y] = DATA.EMPTY
-        break
-      }
-    }
-  }
+  const winMessage =
+    gameState === 'white-win'
+      ? 'The winner is WHITE!'
+      : gameState === 'black-win'
+      ? 'The winner is BLACK!'
+      : 'Choose gamemode'
 
-  changePlayer(data: number[][], isWhiteTurn: boolean): void {
-    isWhiteTurn = !isWhiteTurn
-    const views = this.createViews(data, isWhiteTurn)
-    if (this.isWinner(data, views, isWhiteTurn)) {
-      this.setState({ isWinner: true })
-      this.winner = isWhiteTurn
-        ? 'The winner is BLACK!'
-        : 'The winner is WHITE!'
-      return
-    }
+  const playMessage =
+    gameState === 'white-turn'
+      ? 'White round'
+      : gameState === 'black-turn'
+      ? 'Black round'
+      : '...'
 
-    if (this.state.mode === GAMEMODE.VS_PLAYER) {
-      this.views = views
-      this.setState({
-        data: data,
-        isWhiteTurn: isWhiteTurn,
-        view: this.views[0][0],
-      })
-    } else if (this.state.mode === GAMEMODE.VS_AI) {
-      // create tip matrix with required moves
-      const killable: { i: number; j: number; view: View }[] = []
-      const available: { i: number; j: number; view: View }[] = []
-
-      let requireKill = false
-      views.forEach((row) =>
-        row.forEach((view) => {
-          view.matrix.forEach((row, x) =>
-            row.forEach((elem, y) => {
-              if (elem === VIEW.NECESSARY) {
-                requireKill = true
-                killable.push({
-                  view: view,
-                  i: x,
-                  j: y,
-                })
-              } else if (elem === VIEW.AVAILABLE) {
-                available.push({
-                  view: view,
-                  i: x,
-                  j: y,
-                })
-              }
-            })
-          )
-        })
-      )
-
-      if (requireKill) {
-        const obj = killable[getRandomInt(0, killable.length - 1)]
-        this.kill(obj.i, obj.j, data, obj.view)
-        this.move(obj.i, obj.j, data, obj.view, isWhiteTurn)
-
-        // check if minion can kill again
-        views[obj.i][obj.j] = new View(obj.i, obj.j, data, isWhiteTurn)
-        obj.view = views[obj.i][obj.j]
-        views[obj.view.i][obj.view.j] = new View(
-          obj.view.i,
-          obj.view.j,
-          data,
-          isWhiteTurn
-        )
-        while (views[obj.i][obj.j].requireKill) {
-          // this.setState({
-          //     data: data,
-          // });
-
-          views[obj.i][obj.j].matrix.forEach((row, x) => {
-            row.forEach((elem, y) => {
-              if (elem === VIEW.NECESSARY) {
-                obj.i = x
-                obj.j = y
-              }
-            })
-          })
-
-          this.kill(obj.i, obj.j, data, obj.view)
-          this.move(obj.i, obj.j, data, obj.view, isWhiteTurn)
-
-          views[obj.i][obj.j] = new View(obj.i, obj.j, data, isWhiteTurn)
-          obj.view = views[obj.i][obj.j]
-          views[obj.view.i][obj.view.j] = new View(
-            obj.view.i,
-            obj.view.j,
-            data,
-            isWhiteTurn
-          )
-        }
-      } else {
-        const obj = available[getRandomInt(0, available.length - 1)]
-        this.move(obj.i, obj.j, data, obj.view, isWhiteTurn)
-      }
-
-      this.views = this.createViews(data, !isWhiteTurn)
-      this.setState({
-        data: data,
-        isWhiteTurn: !isWhiteTurn,
-        view: this.views[0][0],
-      })
-    }
-  }
-
-  handleClick(i: number, j: number) {
-    const view = this.state.view
-    const data = this.state.data
-    const isWhiteTurn = this.state.isWhiteTurn
-
-    if (view.matrix[i][j] === VIEW.AVAILABLE) {
-      // move ally minion
-
-      const matrix = createEmptyMatrix()
-      let requireKill = false
-
-      // if require kills, create tip matrix and set as view
-      this.views.forEach((row) =>
-        row.forEach((v) => {
-          if (v.requireKill) {
-            requireKill = true
-            v.matrix.forEach((row, x) =>
-              row.forEach((elem, y) => {
-                if (elem === VIEW.ACTUAL || elem === VIEW.KILLABLE) {
-                  matrix[x][y] = elem
-                }
-              })
-            )
-          }
-        })
-      )
-
-      if (requireKill) {
-        view.matrix = matrix
-        this.setState({})
-        return
-      }
-
-      this.move(i, j, data, view, isWhiteTurn)
-      this.changePlayer(data, isWhiteTurn)
-    } else if (view.matrix[i][j] === VIEW.NECESSARY) {
-      // kill enemy minion and move
-
-      this.kill(i, j, data, view)
-      this.move(i, j, data, view, isWhiteTurn)
-
-      // check if minion can kill again
-      this.views[i][j] = new View(i, j, data, isWhiteTurn)
-      this.views[view.i][view.j] = new View(view.i, view.j, data, isWhiteTurn)
-
-      if (this.views[i][j].requireKill) {
-        this.setState({
-          data: data,
-          view: this.views[i][j],
-        })
-      } else {
-        this.changePlayer(data, isWhiteTurn)
-      }
-    } else {
-      // change view
-      this.setState({ view: this.views[i][j] })
-    }
-  }
-
-  rotate(): void {
-    this.setState({ rotated: !this.state.rotated })
-  }
-
-  againstPlayer(): void {
-    const data = JSON.parse(JSON.stringify(INIT_DATA))
-    this.views = this.createViews(data, true)
-    this.setState({
-      data: data,
-      isWhiteTurn: true,
-      rotated: false,
-      view: this.views[0][0],
-      isWinner: false,
-      mode: GAMEMODE.VS_PLAYER,
-    })
-  }
-
-  againstAI() {
-    const data = JSON.parse(JSON.stringify(INIT_DATA))
-    this.views = this.createViews(data, true)
-    this.setState({
-      data: data,
-      isWhiteTurn: true,
-      rotated: false,
-      view: this.views[0][0],
-      isWinner: false,
-      mode: GAMEMODE.VS_AI,
-    })
-  }
-
-  render(): JSX.Element {
-    const isWinner = this.state.isWinner
-    return (
-      <div className="app">
-        <header className="app-header">
-          <h1>Draughts game!</h1>
-        </header>
-        <main>
-          <Board
-            onClick={
-              isWinner
-                ? () => {}
-                : (i: number, j: number) => this.handleClick(i, j)
-            }
-            data={this.state.data}
-            view={this.state.view.matrix}
-            classes={this.state.rotated ? 'board rotated' : ''}
-          />
-          <p>{this.state.isWhiteTurn ? 'White round' : 'Black round'}</p>
-          <Menu
-            isWinner={isWinner}
-            msg={this.winner}
-            onAgainstPlayer={() => this.againstPlayer()}
-            onAgaistAI={() => this.againstAI()}
-          />
-          <button onClick={() => this.rotate()}>Rotate board</button>
-        </main>
-      </div>
-    )
-  }
+  return (
+    <div className='app'>
+      <header className='app-header'>
+        <h1>Draughts game!</h1>
+      </header>
+      <main>
+        <ChessBoard board={board} onFieldClick={handleFieldClick} />
+        <p>{playMessage}</p>
+        <Menu
+          enabled={menuEnabled}
+          message={winMessage}
+          playerVsPlayer={playerVsPlayer}
+          playerVsAi={playerVsAi}
+        />
+        <button onClick={() => {}}>Rotate board</button>
+      </main>
+    </div>
+  )
 }
 
 export default App
