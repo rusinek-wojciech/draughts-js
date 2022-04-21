@@ -43,10 +43,6 @@ code {
   color: white;
 }
 
-.rotated {
-  transform: rotate(180deg);
-}
-
 /* =====================board=======================* */
 
 .board {
@@ -65,33 +61,41 @@ code {
   display: table-row;
 }
 
-.board-item {
+.board-rotated {
+  transform: rotate(180deg);
+}
+
+/* =====================field=======================* */
+
+.field {
   display: table-cell;
   border: solid 2px black;
   position: relative;
 }
 
-.board-item-black {
+.field-black {
   background-color: lightslategrey;
 }
 
-.board-item-white {
+.field-white {
   background-color: antiquewhite;
 }
 
-.board-actual {
+/* =====================support=======================* */
+
+.support-actual {
   background-color: #5794d9;
 }
 
-.board-available {
+.support-available {
   background-color: #72b372;
 }
 
-.board-necessary {
+.support-necessary {
   background-color: #b83636;
 }
 
-.board-killable {
+.support-killable {
   background-color: #d77b7b;
 }
 
@@ -140,6 +144,7 @@ code {
   border-radius: 5px;
   box-shadow: 0 0 30px black;
   color: white;
+  display: block;
 
   position: fixed;
   top: 50%;

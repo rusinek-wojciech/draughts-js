@@ -1,16 +1,14 @@
 interface Props {
-  enabled: boolean
-  message: string
   playerVsPlayer: () => void
   playerVsAi: () => void
 }
 
-const Menu = ({ enabled, message, playerVsPlayer, playerVsAi }: Props) => {
+const Menu = ({ playerVsPlayer, playerVsAi }: Props) => {
   return (
-    <div className='menu' style={{ display: enabled ? 'block' : 'none' }}>
-      <div className='menu-message'>{message}</div>
+    <div className='menu'>
+      <div className='menu-message'>Choose game mode</div>
       <div className='menu-item' onClick={playerVsPlayer}>
-        Player against player
+        Player against Player
       </div>
       <div className='menu-item' onClick={playerVsAi}>
         Player against AI

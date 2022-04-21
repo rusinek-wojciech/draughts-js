@@ -1,17 +1,30 @@
 import { MouseEventHandler } from 'react'
+import classNames from 'classnames'
 
-import { Field, Figure, findFieldClass, findFigureClass } from 'logic/utils'
+import { Field, Figure, Support } from 'logic/types'
 
 interface Props {
   figure: Figure
   field: Field
-  onClick: MouseEventHandler<HTMLDivElement>
+  support: Support
+  onLeftClick: MouseEventHandler<HTMLDivElement>
+  onRightClick: MouseEventHandler<HTMLDivElement>
 }
 
-const ChessField = ({ figure, field, onClick }: Props) => {
+const ChessField = ({
+  figure,
+  field,
+  support,
+  onLeftClick,
+  onRightClick,
+}: Props) => {
   return (
-    <div onClick={onClick} className={findFieldClass(field)}>
-      <span className={findFigureClass(figure)} />
+    <div
+      onClick={onLeftClick}
+      onContextMenu={onRightClick}
+      className={classNames('field', `field-${field}`, `support-${support}`)}
+    >
+      <span className={classNames('figure', `figure-${figure}`)} />
     </div>
   )
 }
