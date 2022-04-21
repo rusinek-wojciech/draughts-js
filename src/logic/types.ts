@@ -6,3 +6,8 @@ export type Figures = Figure[][]
 
 export type Field = 'black' | 'white'
 export type Fields = Field[][]
+
+export interface Position {
+  x: number
+  y: number
+}
