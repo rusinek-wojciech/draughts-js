@@ -65,6 +65,14 @@ code {
   transform: rotate(180deg);
 }
 
+.board-white-light {
+  box-shadow: 0px 15px 20px -5px rgb(202, 206, 167);
+}
+
+.board-black-light {
+  box-shadow: 0px -15px 20px -5px rgb(66, 66, 66);
+}
+
 /* =====================field=======================* */
 
 .field {

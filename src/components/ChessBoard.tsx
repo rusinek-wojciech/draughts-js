@@ -6,6 +6,7 @@ import { multipleRender } from 'logic/utils'
 import { Fields, Figures, Position, Supports } from 'logic/types'
 
 interface Props {
+  turn: 'white' | 'black'
   rotated: boolean
   figures: Figures
   fields: Fields
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const ChessBoard = ({
+  turn,
   rotated,
   figures,
   fields,
@@ -31,7 +33,14 @@ const ChessBoard = ({
     }
 
   return (
-    <div className={classNames('board', { 'board-rotated': rotated })}>
+    <div
+      className={classNames(
+        'board',
+        { 'board-rotated': rotated },
+        { 'board-white-light': turn === 'white' },
+        { 'board-black-light': turn === 'black' }
+      )}
+    >
       {multipleRender((y) => (
         <div key={y} className='board-row'>
           {multipleRender((x) => (
