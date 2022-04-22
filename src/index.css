@@ -97,10 +97,12 @@ code {
 
 .support-available {
   background-color: #72b372;
+  cursor: pointer;
 }
 
 .support-necessary {
   background-color: #b83636;
+  cursor: pointer;
 }
 
 .support-killable {

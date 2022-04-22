@@ -1,18 +1,17 @@
 interface Props {
-  playerVsPlayer: () => void
-  playerVsAi: () => void
+  title: string
+  options?: { onClick: () => void; name: string }[]
 }
 
-const Menu = ({ playerVsPlayer, playerVsAi }: Props) => {
+const Menu = ({ title, options = [] }: Props) => {
   return (
     <div className='menu'>
-      <div className='menu-message'>Choose game mode</div>
-      <div className='menu-item' onClick={playerVsPlayer}>
-        Player against Player
-      </div>
-      <div className='menu-item' onClick={playerVsAi}>
-        Player against AI
-      </div>
+      <div className='menu-message'>{title}</div>
+      {options.map(({ name, onClick }, i) => (
+        <div key={i} className='menu-item' onClick={onClick}>
+          {name}
+        </div>
+      ))}
     </div>
   )
 }

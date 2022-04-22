@@ -1,94 +1,59 @@
-import { useState, MouseEvent } from 'react'
+import { useReducer, MouseEvent } from 'react'
 
+import { Position } from 'logic/types'
+import reducer from 'logic/reducer/reducer'
+import initialState from 'logic/reducer/state'
 import ChessBoard from 'components/ChessBoard'
-import { Board } from 'logic/utils'
 import Menu from 'components/Menu'
 
-type GameState =
-  | 'white-turn'
-  | 'black-turn'
-  | 'white-win'
-  | 'black-win'
-  | 'prepare'
-
-interface Position {
-  x: number
-  y: number
-}
-
-const getSupportFields = (
-  { x, y }: Position,
-  board: Board,
-  state: GameState
-) => {
-  const field = board.field(x, y)
-  if (field.owner === 'black' && state === 'black-turn') {
-    field.support = 'actual'
-  }
-  if (field.owner === 'white' && state === 'white-turn') {
-    field.support = 'actual'
-  }
-}
-
 const App = () => {
-  const [gameState, setGameState] = useState<GameState>('prepare')
-  const [board, setBoard] = useState<Board>(new Board())
-  const [position, setPosition] = useState<Position>()
+  const [state, dispatch] = useReducer(reducer, initialState())
 
   const handleFieldClick = (
-    x: number,
-    y: number,
-    e: MouseEvent<HTMLDivElement>
+    position: Position,
+    event: MouseEvent<HTMLDivElement>,
+    type: 'left' | 'right'
   ) => {
-    getSupportFields({ x, y }, board, gameState)
-    setBoard(board)
+    event.preventDefault()
+    dispatch({ type: `field-${type}-click`, position })
   }
 
-  const playerVsPlayer = () => {
-    setGameState('white-turn')
-    setBoard(new Board())
-  }
+  const playerVsPlayer = () =>
+    dispatch({ type: 'change-game-state', gameState: 'running' })
 
-  const playerVsAi = () => {
-    setGameState('white-turn')
-    setBoard(new Board())
-  }
+  const playerVsAi = () =>
+    dispatch({ type: 'change-game-state', gameState: 'running' })
 
-  const menuEnabled =
-    gameState === 'white-win' ||
-    gameState === 'black-win' ||
-    gameState === 'prepare'
+  const rotate = () => dispatch({ type: 'rotate' })
 
-  const winMessage =
-    gameState === 'white-win'
-      ? 'The winner is WHITE!'
-      : gameState === 'black-win'
-      ? 'The winner is BLACK!'
-      : 'Choose gamemode'
-
-  const playMessage =
-    gameState === 'white-turn'
-      ? 'White round'
-      : gameState === 'black-turn'
-      ? 'Black round'
-      : '...'
+  const enabledMenu = state.game.state === 'idle'
 
   return (
     <div className='app'>
       <header className='app-header'>
-        <h1>Draughts game!</h1>
+        <h1>Draughts game</h1>
       </header>
       <main>
-        <ChessBoard board={board} onFieldClick={handleFieldClick} />
-        <p>{playMessage}</p>
-        <Menu
-          enabled={menuEnabled}
-          message={winMessage}
-          playerVsPlayer={playerVsPlayer}
-          playerVsAi={playerVsAi}
+        <ChessBoard
+          turn={state.game.turn}
+          rotated={state.rotated}
+          figures={state.figures}
+          fields={state.fields}
+          supports={state.supports}
+          onFieldClick={handleFieldClick}
         />
-        <button onClick={() => {}}>Rotate board</button>
+        <p>Right click to choose figure, left click to move</p>
+        <button onClick={rotate}>Rotate board</button>
       </main>
+      {enabledMenu && (
+        <Menu
+          title='Choose game mode'
+          options={[
+            { name: 'Player against Player', onClick: playerVsPlayer },
+            { name: 'Player against AI', onClick: playerVsAi },
+          ]}
+        />
+      )}
     </div>
   )
 }
