@@ -6,10 +6,11 @@ import { Position } from 'logic/types'
 import { size } from 'logic/utils'
 
 /** directions */
-const NE = (p: Position): Position => ({ x: p.x + 1, y: p.y - 1 })
-const NW = (p: Position): Position => ({ x: p.x - 1, y: p.y - 1 })
-const SE = (p: Position): Position => ({ x: p.x + 1, y: p.y + 1 })
-const SW = (p: Position): Position => ({ x: p.x - 1, y: p.y + 1 })
+type DirectionFn = (p: Position) => Position
+const NE: DirectionFn = (p) => ({ x: p.x + 1, y: p.y - 1 })
+const NW: DirectionFn = (p) => ({ x: p.x - 1, y: p.y - 1 })
+const SE: DirectionFn = (p) => ({ x: p.x + 1, y: p.y + 1 })
+const SW: DirectionFn = (p) => ({ x: p.x - 1, y: p.y + 1 })
 
 const validate = (p: Position): boolean =>
   p.x >= 0 && p.y >= 0 && p.x < size && p.y < size
@@ -63,81 +64,95 @@ const reducer = (state: State, action: Action): State => {
       const { x, y } = action.position
 
       return produce(state, (draft) => {
-        draft.supports = initialSupports()
-
-        if (state.game.turn === 'white' && state.figures[y][x] === 'white') {
-          ;[NE, NW, SE, SW].forEach((dir) => {
+        const findKillable = (
+          x: number,
+          y: number,
+          dirs: DirectionFn[]
+        ): boolean => {
+          return dirs.some((dir) => {
             const p = dir({ x, y })
             const dp = dir(p)
 
-            const isValidated = validate(p) && validate(dp)
-            const isEnemy =
-              state.figures[p.y][p.x] === 'black' ||
-              state.figures[p.y][p.x] === 'black-king'
-            const isNextEmpty = state.figures[dp.y][dp.x] === 'none'
-
-            if (isValidated && isEnemy && isNextEmpty) {
+            if (
+              validate(p) &&
+              validate(dp) &&
+              (state.figures[p.y][p.x] === 'black' ||
+                state.figures[p.y][p.x] === 'black-king') &&
+              state.figures[dp.y][dp.x] === 'none'
+            ) {
               draft.supports[p.y][p.x] = 'killable'
               draft.supports[dp.y][dp.x] = 'necessary'
+              const newDirs = dirs.filter((d) => d !== dir)
+              findKillable(dp.x, dp.y, newDirs)
+              return true
             }
+            return false
           })
-          ;[NE, NW].forEach((dir) => {
+        }
+
+        const findMoveable = (
+          x: number,
+          y: number,
+          dirs: DirectionFn[],
+          limited: boolean = true
+        ) => {
+          dirs.forEach((dir) => {
             let p = { x, y }
-            p = dir(p)
-            if (validate(p) && state.figures[p.y][p.x] === 'none') {
+            while (true) {
+              p = dir(p)
+              if (!(validate(p) && state.figures[p.y][p.x] === 'none')) {
+                break
+              }
               draft.supports[p.y][p.x] = 'available'
+              if (limited) {
+                break
+              }
             }
           })
+        }
+
+        draft.supports = initialSupports()
+
+        if (state.game.turn === 'white' && state.figures[y][x] === 'white') {
           draft.supports[y][x] = 'actual'
           draft.rightPosition = action.position
+
+          if (!findKillable(x, y, [NE, NW, SE, SW])) {
+            findMoveable(x, y, [NE, NW])
+          }
         }
 
         if (state.game.turn === 'black' && state.figures[y][x] === 'black') {
-          ;[SE, SW].forEach((dir) => {
-            let p = { x, y }
-            p = dir(p)
-            if (validate(p) && state.figures[p.y][p.x] === 'none') {
-              draft.supports[p.y][p.x] = 'available'
-            }
-          })
           draft.supports[y][x] = 'actual'
           draft.rightPosition = action.position
+
+          if (!findKillable(x, y, [NE, NW, SE, SW])) {
+            findMoveable(x, y, [SE, SW])
+          }
         }
 
         if (
           state.game.turn === 'white' &&
           state.figures[y][x] === 'white-king'
         ) {
-          ;[NE, NW, SE, SW].forEach((dir) => {
-            let p = { x, y }
-            while (true) {
-              p = dir(p)
-              if (!(validate(p) && state.figures[p.y][p.x] === 'none')) {
-                break
-              }
-              draft.supports[p.y][p.x] = 'available'
-            }
-          })
           draft.supports[y][x] = 'actual'
           draft.rightPosition = action.position
+
+          if (!findKillable(x, y, [NE, NW, SE, SW])) {
+            findMoveable(x, y, [NE, NW, SE, SW], false)
+          }
         }
 
         if (
           state.game.turn === 'black' &&
           state.figures[y][x] === 'black-king'
         ) {
-          ;[NE, NW, SE, SW].forEach((dir) => {
-            let p = { x, y }
-            while (true) {
-              p = dir(p)
-              if (!(validate(p) && state.figures[p.y][p.x] === 'none')) {
-                break
-              }
-              draft.supports[p.y][p.x] = 'available'
-            }
-          })
           draft.supports[y][x] = 'actual'
           draft.rightPosition = action.position
+
+          if (!findKillable(x, y, [NE, NW, SE, SW])) {
+            findMoveable(x, y, [NE, NW, SE, SW], false)
+          }
         }
       })
     }

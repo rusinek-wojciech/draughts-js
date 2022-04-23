@@ -12,6 +12,7 @@ const Menu = ({ title, options = [] }: Props) => {
           {name}
         </div>
       ))}
+      <div className='menu-message'></div>
     </div>
   )
 }
