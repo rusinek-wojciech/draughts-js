@@ -1,5 +1,5 @@
 import { MouseEventHandler } from 'react'
-import classNames from 'classnames'
+import clsx from 'clsx'
 
 import { Field, Figure, Support } from 'logic/types'
 
@@ -22,9 +22,9 @@ const ChessField = ({
     <div
       onClick={onLeftClick}
       onContextMenu={onRightClick}
-      className={classNames('field', `field-${field}`, `support-${support}`)}
+      className={clsx('field', `field-${field}`, `support-${support}`)}
     >
-      <span className={classNames('figure', `figure-${figure}`)} />
+      <span className={clsx('figure', `figure-${figure}`)} />
     </div>
   )
 }

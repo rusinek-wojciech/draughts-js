@@ -1,5 +1,5 @@
 import { MouseEvent } from 'react'
-import classNames from 'classnames'
+import clsx from 'clsx'
 
 import ChessField from 'components/ChessField'
 import { multipleRender } from 'logic/utils'
@@ -34,7 +34,7 @@ const ChessBoard = ({
 
   return (
     <div
-      className={classNames(
+      className={clsx(
         'board',
         { 'board-rotated': rotated },
         { 'board-white-light': turn === 'white' },
