@@ -1,32 +1,23 @@
-import { useReducer, MouseEvent } from 'react'
-
-import { Position } from 'logic/types'
+import { useReducer } from 'react'
 import reducer from 'logic/reducer/reducer'
-import initialState from 'logic/reducer/state'
+import { initialState } from 'logic/reducer/initial'
 import ChessBoard from 'components/ChessBoard'
 import Menu from 'components/Menu'
+import { FieldClickFn } from 'types'
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState())
 
-  const handleFieldClick = (
-    position: Position,
-    event: MouseEvent<HTMLDivElement>,
-    type: 'left' | 'right'
-  ) => {
+  const handleRotate = () => dispatch({ type: 'rotate' })
+
+  const handleStartGame = () => {}
+
+  const handleFieldClick: FieldClickFn = (position, type) => (event) => {
     event.preventDefault()
-    dispatch({ type: `field-${type}-click`, position })
+    dispatch({ type: `field-${type}-click`, clickPosition: position })
   }
 
-  const playerVsPlayer = () =>
-    dispatch({ type: 'change-game-state', gameState: 'running' })
-
-  const playerVsAi = () =>
-    dispatch({ type: 'change-game-state', gameState: 'running' })
-
-  const rotate = () => dispatch({ type: 'rotate' })
-
-  const enabledMenu = state.game.state === 'idle'
+  const isEnabledMenu = false
 
   return (
     <div className='app'>
@@ -34,25 +25,12 @@ const App = () => {
         <h1>Draughts game</h1>
       </header>
       <main>
-        <ChessBoard
-          turn={state.game.turn}
-          rotated={state.rotated}
-          figures={state.figures}
-          fields={state.fields}
-          supports={state.supports}
-          onFieldClick={handleFieldClick}
-        />
+        <ChessBoard state={state} onFieldClick={handleFieldClick} />
         <p>Right click to choose figure, left click to move</p>
-        <button onClick={rotate}>Rotate board</button>
+        <button onClick={handleRotate}>Rotate board</button>
       </main>
-      {enabledMenu && (
-        <Menu
-          title='Choose game mode'
-          options={[
-            { name: 'Player against Player', onClick: playerVsPlayer },
-            { name: 'Player against AI', onClick: playerVsAi },
-          ]}
-        />
+      {isEnabledMenu && (
+        <Menu playerVsPlayer={handleStartGame} playerVsAI={handleStartGame} />
       )}
     </div>
   )

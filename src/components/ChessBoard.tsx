@@ -1,58 +1,45 @@
-import { MouseEvent } from 'react'
 import clsx from 'clsx'
-
-import ChessField from 'components/ChessField'
-import { multipleRender } from 'logic/utils'
-import { Fields, Figures, Position, Supports } from 'logic/types'
+import { Color, FieldClickFn, FieldStatus, State } from 'types'
+import { iters, pos2str } from 'logic/utils'
 
 interface Props {
-  turn: 'white' | 'black'
-  rotated: boolean
-  figures: Figures
-  fields: Fields
-  supports: Supports
-  onFieldClick: (
-    position: Position,
-    event: MouseEvent<HTMLDivElement>,
-    type: 'left' | 'right'
-  ) => void
+  state: State
+  onFieldClick: FieldClickFn
 }
 
-const ChessBoard = ({
-  turn,
-  rotated,
-  figures,
-  fields,
-  supports,
-  onFieldClick,
-}: Props) => {
-  const handleFieldClick =
-    (position: Position, type: 'left' | 'right') =>
-    (event: MouseEvent<HTMLDivElement>) => {
-      onFieldClick(position, event, type)
-    }
+const ChessBoard = ({ state, onFieldClick }: Props) => {
+  const currentViews = state.rightClickPosition
+    ? state.views[state.rightClickPosition].view
+    : null
 
   return (
     <div
       className={clsx(
         'board',
-        { 'board-rotated': rotated },
-        { 'board-white-light': turn === 'white' },
-        { 'board-black-light': turn === 'black' }
+        { 'board-rotated': state.isBoardRotated },
+        { 'board-white-light': state.turn === Color.WHITE },
+        { 'board-black-light': state.turn === Color.BLACK }
       )}
     >
-      {multipleRender((y) => (
-        <div key={y} className='board-row'>
-          {multipleRender((x) => (
-            <ChessField
-              key={x}
-              figure={figures[y][x]}
-              field={fields[y][x]}
-              support={supports[y][x]}
-              onLeftClick={handleFieldClick({ x, y }, 'left')}
-              onRightClick={handleFieldClick({ x, y }, 'right')}
-            />
-          ))}
+      {iters.map((x) => (
+        <div key={x} className='board-row'>
+          {iters.map((y) => {
+            const strPosition = pos2str([x, y])
+            const { color, figure } = state.fields[strPosition]
+            const view = currentViews
+              ? currentViews[strPosition].status
+              : FieldStatus.NONE
+            return (
+              <div
+                key={y}
+                onClick={onFieldClick(strPosition, 'left')}
+                onContextMenu={onFieldClick(strPosition, 'right')}
+                className={clsx('field', `field-${color}`, `view-${view}`)}
+              >
+                <span className={clsx('figure', `figure-${figure}`)} />
+              </div>
+            )
+          })}
         </div>
       ))}
     </div>

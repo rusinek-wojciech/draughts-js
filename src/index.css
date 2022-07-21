@@ -89,23 +89,23 @@ code {
   background-color: antiquewhite;
 }
 
-/* =====================support=======================* */
+/* =====================view=======================* */
 
-.support-actual {
+.view-actual {
   background-color: #5794d9;
 }
 
-.support-available {
+.view-available {
   background-color: #72b372;
   cursor: pointer;
 }
 
-.support-necessary {
+.view-necessary {
   background-color: #b83636;
   cursor: pointer;
 }
 
-.support-killable {
+.view-killable {
   background-color: #d77b7b;
 }
 
