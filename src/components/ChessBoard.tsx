@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Color, FieldClickFn, FieldStatus, State } from 'types'
+import { FieldClickFn, FieldStatus, State } from 'types'
 import { iters, pos2str } from 'logic/utils'
 
 interface Props {
@@ -8,15 +8,16 @@ interface Props {
 }
 
 const ChessBoard = ({ state, onFieldClick }: Props) => {
-  const { rightClickPosition, views, fields } = state
+  const { rightClickPosition, views, fields, isWhiteTurn, isBoardRotated } =
+    state
 
   return (
     <div
       className={clsx(
         'board',
-        { 'board-rotated': state.isBoardRotated },
-        { 'board-white-light': state.turn === Color.WHITE },
-        { 'board-black-light': state.turn === Color.BLACK }
+        { 'board-rotated': isBoardRotated },
+        { 'board-white-light': isWhiteTurn },
+        { 'board-black-light': !isWhiteTurn }
       )}
     >
       {iters.map((x) => (

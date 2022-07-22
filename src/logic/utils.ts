@@ -1,4 +1,4 @@
-import { Color, Figure, Position, Fields } from 'types'
+import { Figure, Position, Fields } from 'types'
 
 /**
  * @returns a random integer between min (inclusive) and max (inclusive)
@@ -24,47 +24,32 @@ export const iters2D = iters.flatMap((x) =>
 
 export const flatIters2D = iters2D.flatMap((position) => pos2str(position))
 
-export const isFieldFigureGivenColor = (
+export const isFieldFigureByTurn = (
   fields: Fields,
   position: string,
-  color: Color
+  isWhiteTurn: boolean
 ): boolean => {
-  if (color === Color.WHITE) {
+  if (isWhiteTurn) {
     return (
       fields[position].figure === Figure.WHITE ||
       fields[position].figure === Figure.WHITE_KING
     )
   }
-  if (color === Color.BLACK) {
-    return (
-      fields[position].figure === Figure.BLACK ||
-      fields[position].figure === Figure.BLACK_KING
-    )
-  }
-  return false
+  return (
+    fields[position].figure === Figure.BLACK ||
+    fields[position].figure === Figure.BLACK_KING
+  )
 }
 
 export const isRightClickAllowed = (
   fields: Fields,
   position: string,
-  turn: Color
+  isWhiteTurn: boolean
 ): boolean => {
   return (
-    (turn === Color.WHITE &&
-      isFieldFigureGivenColor(fields, position, Color.WHITE)) ||
-    (turn === Color.BLACK &&
-      isFieldFigureGivenColor(fields, position, Color.BLACK))
+    (isWhiteTurn && isFieldFigureByTurn(fields, position, isWhiteTurn)) ||
+    (!isWhiteTurn && isFieldFigureByTurn(fields, position, isWhiteTurn))
   )
-}
-
-export const oppositeColor = (color: Color): Color => {
-  return color === Color.WHITE ? Color.BLACK : Color.WHITE
-}
-
-export const between = (p1: Position, p2: Position): Position => {
-  const [x1, y1] = p1
-  const [x2, y2] = p2
-  return [Math.floor((x1 + x2) / 2), Math.floor((y1 + y2) / 2)]
 }
 
 export const movements = {
@@ -90,14 +75,11 @@ export const movements = {
     return movements.validate(dp) ? dp : null
   },
 
-  eachByColor: (color: Color) => {
-    if (color === Color.WHITE) {
+  eachByTurn: (isWhiteTurn: boolean) => {
+    if (isWhiteTurn) {
       return [movements.whiteLeft, movements.whiteRight]
     }
-    if (color === Color.BLACK) {
-      return [movements.blackLeft, movements.blackRight]
-    }
-    return []
+    return [movements.blackLeft, movements.blackRight]
   },
 
   each: () => {
@@ -108,13 +90,6 @@ export const movements = {
       movements.blackRight,
     ]
   },
-}
-
-export const colorByFigure = (figure: Figure): Color => {
-  if (figure === Figure.WHITE || figure === Figure.WHITE_KING) {
-    return Color.WHITE
-  }
-  return Color.BLACK
 }
 
 export const isKing = (figure: Figure): boolean => {

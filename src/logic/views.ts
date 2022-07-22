@@ -1,19 +1,10 @@
 import { emptyInitialView, initialView } from 'logic/reducer/initial'
+import { FieldStatus, Position, Figure, Fields, View, Views } from 'types'
 import {
-  FieldStatus,
-  Position,
-  Figure,
-  Color,
-  Fields,
-  View,
-  Views,
-} from 'types'
-import {
-  isFieldFigureGivenColor,
+  isFieldFigureByTurn,
   iters2D,
   movements,
   pos2str,
-  oppositeColor,
   isKing,
 } from 'logic/utils'
 
@@ -21,7 +12,7 @@ const markAvailable = (
   fields: Fields,
   position: Position,
   view: View,
-  color: Color,
+  isWhiteTurn: boolean,
   king: boolean
 ) => {
   if (king) {
@@ -49,7 +40,7 @@ const markAvailable = (
       }
     })
   } else {
-    movements.eachByColor(color).forEach((fn) => {
+    movements.eachByTurn(isWhiteTurn).forEach((fn) => {
       const dp = fn(position)
 
       if (!dp) {
@@ -74,11 +65,10 @@ const markAvailable = (
 export const generateView = (
   fields: Fields,
   position: Position,
-  color: Color
+  isWhiteTurn: boolean
 ): [View, number] => {
   const positionStr = pos2str(position)
   const king = isKing(fields[positionStr].figure)
-  const oppColor = oppositeColor(color)
   const view = initialView()
 
   view[positionStr].status = FieldStatus.ACTUAL
@@ -97,7 +87,7 @@ export const generateView = (
 
         const dpStr = pos2str(dp)
 
-        if (!isFieldFigureGivenColor(fields, dpStr, oppColor)) {
+        if (!isFieldFigureByTurn(fields, dpStr, !isWhiteTurn)) {
           if (king) {
             p = dp
             continue
@@ -125,6 +115,7 @@ export const generateView = (
         view[ddpStr].status =
           count === 0 ? FieldStatus.NECESSARY : FieldStatus.NECESSARY_NEXT
         view[ddpStr].count = count + 1
+        view[ddpStr].killPosition = dpStr
         kills++
         isKill = true
         markKillable(ddp, count + 1)
@@ -139,16 +130,16 @@ export const generateView = (
     return [view, kills]
   }
 
-  markAvailable(fields, position, view, color, king)
+  markAvailable(fields, position, view, isWhiteTurn, king)
 
   return [view, kills]
 }
 
-export const generateViews = (fields: Fields, color: Color): Views => {
+export const generateViews = (fields: Fields, isWhiteTurn: boolean): Views => {
   return iters2D
     .map((position) => {
-      if (isFieldFigureGivenColor(fields, pos2str(position), color)) {
-        const [view, kills] = generateView(fields, position, color)
+      if (isFieldFigureByTurn(fields, pos2str(position), isWhiteTurn)) {
+        const [view, kills] = generateView(fields, position, isWhiteTurn)
         return {
           [pos2str(position)]: {
             view,

@@ -290,13 +290,14 @@ export const initialFields = (): Fields => {
 }
 
 export const initialState = (): State => {
+  const isWhiteTurn = true
   const fields = initialFields()
-  const views = generateViews(fields, Color.WHITE)
+  const views = generateViews(fields, isWhiteTurn)
   return {
     rightClickPosition: null,
     disableRightClick: false,
     isBoardRotated: false,
-    turn: Color.WHITE,
+    isWhiteTurn,
     fields,
     views,
   }

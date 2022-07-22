@@ -40,6 +40,7 @@ export interface View {
   [position: string]: {
     status: FieldStatus
     count?: number
+    killPosition?: string
   }
 }
 
@@ -54,7 +55,7 @@ export interface State {
   rightClickPosition: string | null
   disableRightClick: boolean
   isBoardRotated: boolean
-  turn: Color
+  isWhiteTurn: boolean
   fields: Fields
   views: Views
 }
