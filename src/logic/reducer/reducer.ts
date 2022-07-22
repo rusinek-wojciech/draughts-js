@@ -5,7 +5,7 @@ import { initialState } from 'logic/reducer/initial'
 import { Figure, FieldStatus, Color, State } from 'types'
 import {
   between,
-  isFieldFigureGivenColor,
+  isRightClickAllowed,
   oppositeColor,
   pos2str,
   str2pos,
@@ -31,12 +31,7 @@ const reducer = (state: State, action: Action): State => {
         const { fields, turn } = state
         const { clickPosition } = action
 
-        if (
-          (turn === Color.WHITE &&
-            isFieldFigureGivenColor(fields, clickPosition, Color.WHITE)) ||
-          (turn === Color.BLACK &&
-            isFieldFigureGivenColor(fields, clickPosition, Color.BLACK))
-        ) {
+        if (isRightClickAllowed(fields, clickPosition, turn)) {
           draft.rightClickPosition = clickPosition
           draft.views = generateViews(fields, turn)
           return

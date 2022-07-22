@@ -16,6 +16,7 @@ export enum FieldStatus {
   AVAILABLE = 'available',
   NECESSARY = 'necessary',
   KILLABLE = 'killable',
+  NECESSARY_NEXT = 'necessary-next',
 }
 
 export enum Color {
@@ -27,8 +28,6 @@ export type FieldClickFn = (
   position: string,
   type: 'left' | 'right'
 ) => (event: MouseEvent<HTMLDivElement>) => void
-
-export type GameState = 'idle' | 'complete' | 'running-black' | 'running-white'
 
 export interface Fields {
   [position: string]: {
@@ -42,6 +41,7 @@ export interface View {
   [position: string]: {
     position: Position
     status: FieldStatus
+    count?: number
   }
 }
 

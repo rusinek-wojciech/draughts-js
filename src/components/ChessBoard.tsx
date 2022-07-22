@@ -26,15 +26,33 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
           {iters.map((y) => {
             const strPosition = pos2str([x, y])
             const { color, figure } = state.fields[strPosition]
-            const view = currentViews
-              ? currentViews[strPosition].status
-              : FieldStatus.NONE
+
+            if (currentViews) {
+              const { status, count } = currentViews[strPosition]
+              return (
+                <div
+                  key={y}
+                  onClick={onFieldClick(strPosition, 'left')}
+                  onContextMenu={onFieldClick(strPosition, 'right')}
+                  className={clsx('field', `field-${color}`, `view-${status}`)}
+                >
+                  <span className={clsx('figure', `figure-${figure}`)}>
+                    {count}
+                  </span>
+                </div>
+              )
+            }
+
             return (
               <div
                 key={y}
                 onClick={onFieldClick(strPosition, 'left')}
                 onContextMenu={onFieldClick(strPosition, 'right')}
-                className={clsx('field', `field-${color}`, `view-${view}`)}
+                className={clsx(
+                  'field',
+                  `field-${color}`,
+                  `view-${FieldStatus.NONE}`
+                )}
               >
                 <span className={clsx('figure', `figure-${figure}`)} />
               </div>

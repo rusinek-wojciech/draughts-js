@@ -44,6 +44,19 @@ export const isFieldFigureGivenColor = (
   return false
 }
 
+export const isRightClickAllowed = (
+  fields: Fields,
+  position: string,
+  turn: Color
+): boolean => {
+  return (
+    (turn === Color.WHITE &&
+      isFieldFigureGivenColor(fields, position, Color.WHITE)) ||
+    (turn === Color.BLACK &&
+      isFieldFigureGivenColor(fields, position, Color.BLACK))
+  )
+}
+
 export const oppositeColor = (color: Color): Color => {
   return color === Color.WHITE ? Color.BLACK : Color.WHITE
 }
@@ -54,35 +67,56 @@ export const between = (p1: Position, p2: Position): Position => {
   return [Math.floor((x1 + x2) / 2), Math.floor((y1 + y2) / 2)]
 }
 
-const validate = ([x, y]: Position): boolean => {
-  return x >= 0 && y >= 0 && x < 8 && y < 8
-}
-
 export const movements = {
+  validate: ([x, y]: Position): boolean => x >= 0 && y >= 0 && x < 8 && y < 8,
+
   whiteLeft: ([x, y]: Position): Position | null => {
     const dp: Position = [x - 1, y - 1]
-    return validate(dp) ? dp : null
+    return movements.validate(dp) ? dp : null
   },
+
   whiteRight: ([x, y]: Position): Position | null => {
     const dp: Position = [x - 1, y + 1]
-    return validate(dp) ? dp : null
+    return movements.validate(dp) ? dp : null
   },
+
   blackLeft: ([x, y]: Position): Position | null => {
     const dp: Position = [x + 1, y - 1]
-    return validate(dp) ? dp : null
+    return movements.validate(dp) ? dp : null
   },
+
   blackRight: ([x, y]: Position): Position | null => {
     const dp: Position = [x + 1, y + 1]
-    return validate(dp) ? dp : null
+    return movements.validate(dp) ? dp : null
   },
-  right: ([x, y]: Position, color: Color): Position | null => {
-    return color === Color.BLACK
-      ? movements.blackRight([x, y])
-      : movements.whiteRight([x, y])
+
+  eachByColor: (color: Color) => {
+    if (color === Color.WHITE) {
+      return [movements.whiteLeft, movements.whiteRight]
+    }
+    if (color === Color.BLACK) {
+      return [movements.blackLeft, movements.blackRight]
+    }
+    return []
   },
-  left: ([x, y]: Position, color: Color): Position | null => {
-    return color === Color.BLACK
-      ? movements.blackLeft([x, y])
-      : movements.whiteLeft([x, y])
+
+  each: () => {
+    return [
+      movements.whiteLeft,
+      movements.whiteRight,
+      movements.blackLeft,
+      movements.blackRight,
+    ]
   },
+}
+
+export const colorByFigure = (figure: Figure): Color => {
+  if (figure === Figure.WHITE || figure === Figure.WHITE_KING) {
+    return Color.WHITE
+  }
+  return Color.BLACK
+}
+
+export const isKing = (figure: Figure): boolean => {
+  return figure === Figure.WHITE_KING || figure === Figure.BLACK_KING
 }

@@ -27,11 +27,6 @@ code {
   text-align: center;
 }
 
-.app-logo {
-  height: 5vmin;
-  pointer-events: none;
-}
-
 .app-header {
   background-color: #282c34;
   min-height: 10vh;
@@ -79,6 +74,11 @@ code {
   display: table-cell;
   border: solid 2px black;
   position: relative;
+
+  /* text */
+  font-size: calc(10px + 2vmin);
+  color: white;
+  text-shadow: 4px 4px 28px rgba(66, 68, 90, 1);
 }
 
 .field-black {
@@ -101,12 +101,16 @@ code {
 }
 
 .view-necessary {
-  background-color: #b83636;
+  background-color: #990606;
   cursor: pointer;
 }
 
+.view-necessary-next {
+  background-color: #d91e1e;
+}
+
 .view-killable {
-  background-color: #d77b7b;
+  background-color: #ff5454;
 }
 
 /* =====================figure=======================* */
