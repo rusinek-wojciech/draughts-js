@@ -8,9 +8,7 @@ interface Props {
 }
 
 const ChessBoard = ({ state, onFieldClick }: Props) => {
-  const currentViews = state.rightClickPosition
-    ? state.views[state.rightClickPosition].view
-    : null
+  const { rightClickPosition, views, fields } = state
 
   return (
     <div
@@ -24,16 +22,16 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
       {iters.map((x) => (
         <div key={x} className='board-row'>
           {iters.map((y) => {
-            const strPosition = pos2str([x, y])
-            const { color, figure } = state.fields[strPosition]
+            const position = pos2str([x, y])
+            const { color, figure } = fields[position]
 
-            if (currentViews) {
-              const { status, count } = currentViews[strPosition]
+            if (rightClickPosition) {
+              const { status, count } = views[rightClickPosition].view[position]
               return (
                 <div
                   key={y}
-                  onClick={onFieldClick(strPosition, 'left')}
-                  onContextMenu={onFieldClick(strPosition, 'right')}
+                  onClick={onFieldClick(position, 'left')}
+                  onContextMenu={onFieldClick(position, 'right')}
                   className={clsx('field', `field-${color}`, `view-${status}`)}
                 >
                   <span className={clsx('figure', `figure-${figure}`)}>
@@ -46,8 +44,8 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
             return (
               <div
                 key={y}
-                onClick={onFieldClick(strPosition, 'left')}
-                onContextMenu={onFieldClick(strPosition, 'right')}
+                onClick={onFieldClick(position, 'left')}
+                onContextMenu={onFieldClick(position, 'right')}
                 className={clsx(
                   'field',
                   `field-${color}`,

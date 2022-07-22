@@ -1,4 +1,4 @@
-import { initialView } from 'logic/reducer/initial'
+import { emptyInitialView, initialView } from 'logic/reducer/initial'
 import {
   FieldStatus,
   Position,
@@ -75,7 +75,7 @@ export const generateView = (
   fields: Fields,
   position: Position,
   color: Color
-): View => {
+): [View, number] => {
   const positionStr = pos2str(position)
   const king = isKing(fields[positionStr].figure)
   const oppColor = oppositeColor(color)
@@ -83,6 +83,7 @@ export const generateView = (
 
   view[positionStr].status = FieldStatus.ACTUAL
 
+  let kills = 0
   let isKill = false
   const markKillable = (position: Position, count: number = 0) => {
     movements.each().forEach((fn) => {
@@ -124,7 +125,7 @@ export const generateView = (
         view[ddpStr].status =
           count === 0 ? FieldStatus.NECESSARY : FieldStatus.NECESSARY_NEXT
         view[ddpStr].count = count + 1
-
+        kills++
         isKill = true
         markKillable(ddp, count + 1)
         break
@@ -135,25 +136,33 @@ export const generateView = (
   markKillable(position)
 
   if (isKill) {
-    return view
+    return [view, kills]
   }
 
   markAvailable(fields, position, view, color, king)
 
-  return view
+  return [view, kills]
 }
 
 export const generateViews = (fields: Fields, color: Color): Views => {
   return iters2D
-    .filter((position) =>
-      isFieldFigureGivenColor(fields, pos2str(position), color)
-    )
-    .map((position, i) => ({
-      [pos2str(position)]: {
-        position: iters2D[i],
-        view: generateView(fields, position, color),
-      },
-    }))
+    .map((position) => {
+      if (isFieldFigureGivenColor(fields, pos2str(position), color)) {
+        const [view, kills] = generateView(fields, position, color)
+        return {
+          [pos2str(position)]: {
+            view,
+            kills,
+          },
+        }
+      }
+      return {
+        [pos2str(position)]: {
+          view: emptyInitialView,
+          kills: 0,
+        },
+      }
+    })
     .reduce(
       (obj, acc) => ({
         ...acc,

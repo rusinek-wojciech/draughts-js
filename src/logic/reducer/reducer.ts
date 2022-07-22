@@ -28,12 +28,15 @@ const reducer = (state: State, action: Action): State => {
 
     case 'field-right-click': {
       return produce(state, (draft) => {
-        const { fields, turn } = state
+        const { fields, turn, disableRightClick } = state
         const { clickPosition } = action
+
+        if (disableRightClick) {
+          return
+        }
 
         if (isRightClickAllowed(fields, clickPosition, turn)) {
           draft.rightClickPosition = clickPosition
-          draft.views = generateViews(fields, turn)
           return
         }
 
@@ -65,15 +68,30 @@ const reducer = (state: State, action: Action): State => {
                 fields[rightClickPosition].figure
             }
 
+            const oppTurn = oppositeColor(turn)
             if (status === FieldStatus.AVAILABLE) {
-              draft.turn = oppositeColor(turn)
+              draft.views = generateViews(draft.fields, oppTurn)
+              draft.turn = oppTurn
               draft.rightClickPosition = null
             } else if (status === FieldStatus.NECESSARY) {
+              const clickPos = str2pos(clickPosition)
               const killPosition = pos2str(
-                between(str2pos(rightClickPosition), str2pos(clickPosition))
+                between(str2pos(rightClickPosition), clickPos)
               )
               draft.fields[killPosition].figure = Figure.NONE
-              draft.rightClickPosition = null // clickPosition
+
+              const views = generateViews(draft.fields, turn)
+              const view = views[clickPosition]
+
+              if (view.kills === 0) {
+                draft.disableRightClick = false
+                draft.views = generateViews(draft.fields, oppTurn)
+                draft.turn = oppTurn
+              } else {
+                draft.disableRightClick = true
+                draft.views = views
+                draft.rightClickPosition = clickPosition
+              }
             }
           }
         }

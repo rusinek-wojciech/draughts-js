@@ -33,13 +33,11 @@ export interface Fields {
   [position: string]: {
     color: Color
     figure: Figure
-    position: Position
   }
 }
 
 export interface View {
   [position: string]: {
-    position: Position
     status: FieldStatus
     count?: number
   }
@@ -47,13 +45,14 @@ export interface View {
 
 export interface Views {
   [position: string]: {
-    position: Position
     view: View
+    kills: number
   }
 }
 
 export interface State {
   rightClickPosition: string | null
+  disableRightClick: boolean
   isBoardRotated: boolean
   turn: Color
   fields: Fields
