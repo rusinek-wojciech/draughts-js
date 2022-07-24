@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { FieldClickFn, FieldStatus, State } from 'types'
 import { iters, pos2str } from 'logic/utils'
+import { ActionType } from 'logic/reducer/action'
 
 interface Props {
   state: State
@@ -31,8 +32,11 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
               return (
                 <div
                   key={y}
-                  onClick={onFieldClick(position, 'left')}
-                  onContextMenu={onFieldClick(position, 'right')}
+                  onClick={onFieldClick(position, ActionType.FIELD_LEFT_CLICK)}
+                  onContextMenu={onFieldClick(
+                    position,
+                    ActionType.FIELD_RIGHT_CLICK
+                  )}
                   className={clsx('field', `field-${color}`, `view-${status}`)}
                 >
                   <span className={clsx('figure', `figure-${figure}`)}>
@@ -45,8 +49,11 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
             return (
               <div
                 key={y}
-                onClick={onFieldClick(position, 'left')}
-                onContextMenu={onFieldClick(position, 'right')}
+                onClick={onFieldClick(position, ActionType.FIELD_LEFT_CLICK)}
+                onContextMenu={onFieldClick(
+                  position,
+                  ActionType.FIELD_RIGHT_CLICK
+                )}
                 className={clsx(
                   'field',
                   `field-${color}`,

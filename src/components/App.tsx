@@ -3,45 +3,44 @@ import reducer from 'logic/reducer/reducer'
 import { initialState } from 'logic/reducer/initial'
 import ChessBoard from 'components/ChessBoard'
 import Menu from 'components/Menu'
-import { FieldClickFn } from 'types'
+import { FieldClickFn, Status } from 'types'
+import Footer from 'components/Footer'
+import Navbar from 'components/Navbar'
+import { ActionType } from 'logic/reducer/action'
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState())
 
-  const handleRotate = () => dispatch({ type: 'rotate' })
+  const handleRotate = () => {
+    dispatch({ type: ActionType.ROTATE })
+  }
 
-  const handleStartGame = () => {}
+  const handleChangeStatus = (status: Status) => () => {
+    dispatch({ type: ActionType.SET_STATUS, status })
+  }
 
   const handleFieldClick: FieldClickFn = (position, type) => (event) => {
     event.preventDefault()
-    dispatch({ type: `field-${type}-click`, clickPosition: position })
+    dispatch({ type, clickPosition: position })
   }
 
-  const isEnabledMenu = false
+  const isMenuEnabled = state.status === Status.NONE
 
   return (
     <div className='app'>
-      <header className='app-header'>
-        <h1>Draughts game</h1>
-      </header>
+      <Navbar />
       <main>
         <ChessBoard state={state} onFieldClick={handleFieldClick} />
         <p>Right click to choose figure, left click to move</p>
         <button onClick={handleRotate}>Rotate board</button>
       </main>
-      {isEnabledMenu && (
-        <Menu playerVsPlayer={handleStartGame} playerVsAI={handleStartGame} />
+      {isMenuEnabled && (
+        <Menu
+          playerVsPlayer={handleChangeStatus(Status.PLAYER_VS_PLAYER)}
+          playerVsAI={handleChangeStatus(Status.NONE)}
+        />
       )}
-      <footer className='footer'>
-        <header>
-          <h1>How to play?</h1>
-          <p>
-            Your goal is to eliminate enemy pawns. Shadow on the edge of board
-            shows which player has turn. Use <i>right click</i> to select pawn.
-            Then use <i>left click</i> to select one of available move.
-          </p>
-        </header>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { ActionType } from 'logic/reducer/action'
 import { MouseEvent } from 'react'
 
 export type Position = [number, number]
@@ -26,7 +27,7 @@ export enum Color {
 
 export type FieldClickFn = (
   position: string,
-  type: 'left' | 'right'
+  type: ActionType.FIELD_LEFT_CLICK | ActionType.FIELD_RIGHT_CLICK
 ) => (event: MouseEvent<HTMLDivElement>) => void
 
 export interface Fields {
@@ -51,6 +52,11 @@ export interface Views {
   }
 }
 
+export enum Status {
+  NONE = 'none',
+  PLAYER_VS_PLAYER = 'player-vs-player',
+}
+
 export interface State {
   rightClickPosition: string | null
   disableRightClick: boolean
@@ -58,4 +64,5 @@ export interface State {
   isWhiteTurn: boolean
   fields: Fields
   views: Views
+  status: Status
 }

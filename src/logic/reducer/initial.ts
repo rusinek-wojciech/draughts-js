@@ -1,4 +1,4 @@
-import { Figure, FieldStatus, Color, Fields, State, View } from 'types'
+import { Figure, FieldStatus, Color, Fields, State, View, Status } from 'types'
 import { flatIters2D } from 'logic/utils'
 import { generateViews } from 'logic/views'
 
@@ -295,10 +295,11 @@ export const initialState = (): State => {
   const views = generateViews(fields, isWhiteTurn)
   return {
     rightClickPosition: null,
-    disableRightClick: false,
+    disableRightClick: true,
     isBoardRotated: false,
     isWhiteTurn,
     fields,
     views,
+    status: Status.NONE,
   }
 }
