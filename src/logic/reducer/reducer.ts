@@ -1,16 +1,16 @@
 import produce from 'immer'
 
 import { Action, ActionType } from 'logic/reducer/action'
-import { initialState } from 'logic/reducer/initial'
-import { Figure, FieldStatus, State, Status } from 'types'
+import { Figure, FieldStatus, Status, Color } from 'types'
 import { isRightClickAllowed } from 'logic/utils'
-import { generateViews } from 'logic/views'
+import { State, initialState } from 'logic/reducer/state'
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case ActionType.SET_STATUS: {
       return produce(state, (draft) => {
         draft.status = action.status
+
         if (action.status === Status.NONE) {
           draft.disableRightClick = true
         } else if (action.status === Status.PLAYER_VS_PLAYER) {
@@ -31,14 +31,15 @@ const reducer = (state: State, action: Action): State => {
 
     case ActionType.FIELD_RIGHT_CLICK: {
       return produce(state, (draft) => {
-        const { fields, isWhiteTurn, disableRightClick } = state
+        const { board, turn, disableRightClick } = state
         const { clickPosition } = action
 
         if (disableRightClick) {
           return
         }
 
-        if (isRightClickAllowed(fields, clickPosition, isWhiteTurn)) {
+        const figure = board.figure(clickPosition)
+        if (isRightClickAllowed(figure, turn)) {
           draft.rightClickPosition = clickPosition
           return
         }
@@ -49,48 +50,32 @@ const reducer = (state: State, action: Action): State => {
 
     case ActionType.FIELD_LEFT_CLICK: {
       return produce(state, (draft) => {
-        const { rightClickPosition, views, fields, isWhiteTurn } = state
+        const { rightClickPosition, board, turn } = state
         const { clickPosition } = action
 
         if (rightClickPosition) {
-          const currentView = views[rightClickPosition].view
-          const { status, killPosition } = currentView[clickPosition]
+          const isTurnEnd = board.move(rightClickPosition, clickPosition, turn)
 
-          if (
-            status === FieldStatus.AVAILABLE ||
-            status === FieldStatus.NECESSARY
-          ) {
-            draft.fields[rightClickPosition].figure = Figure.NONE
+          if (isTurnEnd) {
+            draft.turn = turn === Color.WHITE ? Color.BLACK : Color.WHITE
+            draft.rightClickPosition = null
+          } else  {
+            draft.fields[killPosition!].figure = Figure.NONE
 
-            if (clickPosition.startsWith('0') && isWhiteTurn) {
-              draft.fields[clickPosition].figure = Figure.WHITE_KING
-            } else if (clickPosition.startsWith('7') && !isWhiteTurn) {
-              draft.fields[clickPosition].figure = Figure.BLACK_KING
-            } else {
-              draft.fields[clickPosition].figure =
-                fields[rightClickPosition].figure
-            }
+            const views = generateViews(draft.fields, isWhiteTurn)
 
-            if (status === FieldStatus.AVAILABLE) {
-              draft.views = generateViews(draft.fields, !isWhiteTurn)
+            if (views[clickPosition].availableKills === 0) {
+              draft.disableRightClick = false
+              draft.board = generateViews(draft.fields, !isWhiteTurn)
               draft.isWhiteTurn = !isWhiteTurn
-              draft.rightClickPosition = null
-            } else if (status === FieldStatus.NECESSARY) {
-              draft.fields[killPosition!].figure = Figure.NONE
-
-              const views = generateViews(draft.fields, isWhiteTurn)
-
-              if (views[clickPosition].kills === 0) {
-                draft.disableRightClick = false
-                draft.views = generateViews(draft.fields, !isWhiteTurn)
-                draft.isWhiteTurn = !isWhiteTurn
-              } else {
-                draft.disableRightClick = true
-                draft.views = views
-                draft.rightClickPosition = clickPosition
-              }
+            } else {
+              draft.disableRightClick = true
+              draft.board = views
+              draft.rightClickPosition = clickPosition
             }
           }
+
+          draft.board = board
         }
       })
     }

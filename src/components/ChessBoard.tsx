@@ -1,7 +1,11 @@
 import clsx from 'clsx'
-import { FieldClickFn, FieldStatus, State } from 'types'
+import { Color, FieldClickFn, State } from 'types'
 import { iters, pos2str } from 'logic/utils'
 import { ActionType } from 'logic/reducer/action'
+
+const colorByField = (x: number, y: number): string => {
+  return x > y ? `field-${Color.BLACK}` : `field-${Color.WHITE}`
+}
 
 interface Props {
   state: State
@@ -9,8 +13,7 @@ interface Props {
 }
 
 const ChessBoard = ({ state, onFieldClick }: Props) => {
-  const { rightClickPosition, views, fields, isWhiteTurn, isBoardRotated } =
-    state
+  const { rightClickPosition, board, isWhiteTurn, isBoardRotated } = state
 
   return (
     <div
@@ -25,10 +28,10 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
         <div key={x} className='board-row'>
           {iters.map((y) => {
             const position = pos2str([x, y])
-            const { color, figure } = fields[position]
 
             if (rightClickPosition) {
-              const { status, count } = views[rightClickPosition].view[position]
+              const fieldView = board.view(rightClickPosition)!.field(position)
+
               return (
                 <div
                   key={y}
@@ -37,10 +40,14 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
                     position,
                     ActionType.FIELD_RIGHT_CLICK
                   )}
-                  className={clsx('field', `field-${color}`, `view-${status}`)}
+                  className={clsx(
+                    'field',
+                    colorByField(x, y),
+                    `view-${fieldView.status}`
+                  )}
                 >
-                  <span className={clsx('figure', `figure-${figure}`)}>
-                    {count}
+                  <span className={clsx('figure', board.figureStyle(position))}>
+                    {fieldView.count}
                   </span>
                 </div>
               )
@@ -54,13 +61,11 @@ const ChessBoard = ({ state, onFieldClick }: Props) => {
                   position,
                   ActionType.FIELD_RIGHT_CLICK
                 )}
-                className={clsx(
-                  'field',
-                  `field-${color}`,
-                  `view-${FieldStatus.NONE}`
-                )}
+                className={clsx('field', colorByField(x, y))}
               >
-                <span className={clsx('figure', `figure-${figure}`)} />
+                <span
+                  className={clsx('figure', board.figureStyle(position))}
+                ></span>
               </div>
             )
           })}

@@ -129,7 +129,7 @@ code {
   transform: translate(-50%, -50%);
 }
 
-.figure-white {
+.figure-white-pawn {
   background-color: #ffffff;
   border: double 5px #ced417;
 }
@@ -139,7 +139,7 @@ code {
   border: double 12px #ced417;
 }
 
-.figure-black {
+.figure-black-pawn {
   background-color: #585656;
   border: double 5px #000000;
 }
